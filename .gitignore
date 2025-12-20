@@ -23,6 +23,7 @@
 # misc
 .DS_Store
 *.pem
+Thumbs.db
 
 # debug
 npm-debug.log*
@@ -30,12 +31,39 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# env files (NEVER commit API keys)
+.env
+.env*.local
+.env.production
 
 # vercel
 .vercel
 
+# netlify
+.netlify
+
+# cache and logs
+data/
+logs/
+*.log
+
+# IDE
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# deployment folders
+netlify-deploy/
+_resources/
