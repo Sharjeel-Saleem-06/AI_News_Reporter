@@ -248,18 +248,24 @@ export async function fetchEnhancedRSS(lookbackDays: number = 3): Promise<NewsIt
                 const feedData = await parser.parseURL(feed.url);
                 
                 return feedData.items
-                    .map((item) => ({
-                        id: item.guid || item.link || `${feed.name}-${Math.random().toString(36).slice(2)}`,
-                        title: item.title || 'Untitled',
-                        link: item.link || '#',
-                        pubDate: item.pubDate || item.isoDate || new Date().toISOString(),
-                        source: feed.name,
-                        sourceTier: feed.tier,
-                        contentSnippet: stripHtml(item.contentSnippet || item.content || item.summary || ''),
-                        content: item.content || item.contentSnippet || '',
-                        imageUrl: extractImageUrl(item),
-                        category: feed.categories[0] as NewsCategory,
-                    }))
+                    .map((item) => {
+                        // Clean all HTML content
+                        const rawContent = item.contentSnippet || item.content || item.summary || '';
+                        const cleanedSnippet = stripHtml(rawContent);
+                        
+                        return {
+                            id: item.guid || item.link || `${feed.name}-${Math.random().toString(36).slice(2)}`,
+                            title: item.title || 'Untitled',
+                            link: item.link || '#',
+                            pubDate: item.pubDate || item.isoDate || new Date().toISOString(),
+                            source: feed.name,
+                            sourceTier: feed.tier,
+                            contentSnippet: cleanedSnippet,
+                            content: stripHtml(item.content || rawContent),
+                            imageUrl: extractImageUrl(item),
+                            category: feed.categories[0] as NewsCategory,
+                        };
+                    })
                     .filter((item) => {
                         // Date filter
                         const date = new Date(item.pubDate);

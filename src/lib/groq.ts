@@ -10,6 +10,7 @@ import Groq from 'groq-sdk';
 import { NewsItem, NewsCategory, NewsPriority } from './types';
 import { apiKeyPool } from './api-pool';
 import { analysisCache } from './advanced-cache';
+import { stripHtml } from './utils';
 
 // VIBE CODER RELEVANT ENTITIES - Expanded and prioritized
 const KNOWN_MODELS = [
@@ -261,7 +262,7 @@ function normalizeAnalysis(result: any, item: NewsItem): Partial<NewsItem> {
     return {
         category,
         priority,
-        summary: result.summary || item.contentSnippet.slice(0, 150) + '...',
+        summary: stripHtml(result.summary || item.contentSnippet.slice(0, 150) + '...'),
         tags: Array.isArray(result.tags) ? result.tags.slice(0, 4) : [],
         relatedModels: Array.isArray(result.relatedModels) ? result.relatedModels : [],
         relatedCompanies: Array.isArray(result.relatedCompanies) ? result.relatedCompanies : [],
@@ -270,7 +271,7 @@ function normalizeAnalysis(result: any, item: NewsItem): Partial<NewsItem> {
             ? result.sentiment
             : 'neutral',
         actionable: Boolean(result.actionable),
-        technicalImpact: result.technicalImpact || '',
+        technicalImpact: stripHtml(result.technicalImpact || ''),
         isBreaking: priority === 'breaking',
     };
 }
@@ -378,7 +379,7 @@ function createFallbackAnalysis(item: NewsItem): Partial<NewsItem> {
     return {
         category,
         priority,
-        summary: item.contentSnippet.slice(0, 150) + '...',
+        summary: stripHtml(item.contentSnippet).slice(0, 150) + '...',
         tags: extractBasicTags(item),
         relatedModels: KNOWN_MODELS.filter(m =>
             item.title.toLowerCase().includes(m.toLowerCase()) ||

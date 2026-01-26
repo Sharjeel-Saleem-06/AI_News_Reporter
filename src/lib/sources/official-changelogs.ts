@@ -112,17 +112,20 @@ export async function fetchOfficialChangelogs(lookbackDays: number = 3): Promise
             try {
                 if (source.type === 'rss' && source.apiUrl) {
                     const feed = await parser.parseURL(source.apiUrl);
-                    return feed.items.map(item => ({
-                        id: item.guid || item.link || `${source.name}-${Date.now()}-${Math.random()}`,
-                        title: item.title || 'Untitled',
-                        link: item.link || source.url,
-                        pubDate: item.pubDate || item.isoDate || new Date().toISOString(),
-                        source: source.name,
-                        sourceTier: 'official' as const,
-                        contentSnippet: stripHtml(item.contentSnippet || item.content || '').slice(0, 500),
-                        content: item.content || '',
-                        category: source.category,
-                    })).filter(item => {
+                    return feed.items.map(item => {
+                        const rawContent = item.contentSnippet || item.content || '';
+                        return {
+                            id: item.guid || item.link || `${source.name}-${Date.now()}-${Math.random()}`,
+                            title: item.title || 'Untitled',
+                            link: item.link || source.url,
+                            pubDate: item.pubDate || item.isoDate || new Date().toISOString(),
+                            source: source.name,
+                            sourceTier: 'official' as const,
+                            contentSnippet: stripHtml(rawContent).slice(0, 500),
+                            content: stripHtml(item.content || rawContent),
+                            category: source.category,
+                        };
+                    }).filter(item => {
                         const date = new Date(item.pubDate);
                         return !isNaN(date.getTime()) && isAfter(date, cutoffDate);
                     });
