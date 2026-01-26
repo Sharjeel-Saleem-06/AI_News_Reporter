@@ -1,7 +1,8 @@
 /**
- * Vibe Coder AI Analysis System
+ * Vibe Coder AI Analysis System v2
+ * - Enhanced relevance scoring for AI developers
  * - Prioritizes AI coding tools, models, and IDEs
- * - Uses API Key Pool for load balancing
+ * - Uses API Key Pool for load balancing with 10 keys
  * - Smart caching to minimize API calls
  */
 
@@ -10,63 +11,80 @@ import { NewsItem, NewsCategory, NewsPriority } from './types';
 import { apiKeyPool } from './api-pool';
 import { analysisCache } from './advanced-cache';
 
-// VIBE CODER RELEVANT ENTITIES
+// VIBE CODER RELEVANT ENTITIES - Expanded and prioritized
 const KNOWN_MODELS = [
-    // Flagship Models - MUST KNOW
-    'GPT-4', 'GPT-4o', 'GPT-4.5', 'GPT-5', 'o1', 'o3', 'o1-pro',
+    // Flagship Models - MUST KNOW (Tier 1)
+    'GPT-4', 'GPT-4o', 'GPT-4.5', 'GPT-5', 'o1', 'o3', 'o1-pro', 'o1-mini',
     'Claude', 'Claude 3', 'Claude 3.5', 'Claude 4', 'Sonnet', 'Opus', 'Haiku',
-    'Gemini', 'Gemini 2', 'Gemini Pro', 'Gemini Ultra', 'Gemma',
-    // Open Source - For local dev
-    'Llama', 'Llama 3', 'Llama 4', 'CodeLlama',
-    'Mistral', 'Mixtral', 'Codestral', 'Pixtral',
-    'Qwen', 'DeepSeek', 'DeepSeek-V3', 'Phi-4',
-    // Code Models
-    'Codex', 'StarCoder', 'CodeGen', 'WizardCoder',
-    // Vision/Multimodal
-    'GPT-4V', 'Claude 3 Vision', 'Gemini Vision',
-    // Video/Image
-    'Sora', 'DALL-E 3', 'Midjourney', 'Stable Diffusion', 'FLUX',
+    'Gemini', 'Gemini 2', 'Gemini 2.0', 'Gemini Pro', 'Gemini Ultra', 'Gemini Flash', 'Gemma', 'Gemma 2',
+    // Open Source - For local dev (Tier 2)
+    'Llama', 'Llama 3', 'Llama 3.1', 'Llama 3.2', 'Llama 3.3', 'Llama 4', 'CodeLlama',
+    'Mistral', 'Mixtral', 'Codestral', 'Pixtral', 'Mistral Large', 'Mistral Small',
+    'Qwen', 'Qwen 2', 'Qwen 2.5', 'QwQ', 'DeepSeek', 'DeepSeek-V3', 'DeepSeek-R1',
+    'Phi-4', 'Phi-3', 'Phi-3.5',
+    // Code Models (Tier 2)
+    'Codex', 'StarCoder', 'StarCoder2', 'CodeGen', 'WizardCoder', 'Magicoder',
+    // Vision/Multimodal (Tier 2)
+    'GPT-4V', 'GPT-4o', 'Claude 3 Vision', 'Gemini Vision', 'LLaVA', 'Qwen-VL',
+    // Video/Image (Tier 3)
+    'Sora', 'DALL-E', 'DALL-E 3', 'Midjourney', 'Midjourney v6', 'Stable Diffusion', 'SDXL', 'FLUX', 'Flux.1',
+    'Runway', 'Kling', 'Pika', 'Luma', 'HeyGen', 'Synthesia',
 ];
 
 const KNOWN_IDES = [
-    // AI IDEs - PRIMARY FOCUS
-    'Cursor', 'Cursor IDE',
-    'Windsurf', 'Codeium',
-    'GitHub Copilot', 'Copilot',
+    // AI IDEs - PRIMARY FOCUS (Tier 1)
+    'Cursor', 'Cursor IDE', 'Cursor AI',
+    'Windsurf', 'Codeium', 'Supermaven',
+    'GitHub Copilot', 'Copilot', 'Copilot Chat', 'Copilot Workspace',
     'Tabnine',
-    'Replit', 'Replit Agent',
-    'Bolt', 'bolt.new',
+    'Replit', 'Replit Agent', 'Ghostwriter',
+    'Bolt', 'bolt.new', 'StackBlitz',
     'v0', 'v0.dev',
-    'Lovable',
-    // AI Code Assistants
-    'Claude Code', 'Aider',
-    'Continue', 'Sourcegraph Cody',
-    // Traditional IDEs with AI
-    'VS Code', 'Visual Studio Code',
-    'JetBrains AI', 'IntelliJ', 'PyCharm',
-    'Zed',
+    'Lovable', 'Devin', 'Devon',
+    // AI Code Assistants (Tier 2)
+    'Claude Code', 'Aider', 'Cody', 'Sourcegraph Cody',
+    'Continue', 'Continuedev',
+    'Amazon Q', 'CodeWhisperer',
+    // Traditional IDEs with AI (Tier 3)
+    'VS Code', 'Visual Studio Code', 'VSCode',
+    'JetBrains AI', 'IntelliJ', 'PyCharm', 'WebStorm',
+    'Zed', 'Zed Editor',
+    'Neovim', 'Vim',
 ];
 
 const AI_FRAMEWORKS = [
-    // Agent Frameworks
-    'LangChain', 'LlamaIndex', 'CrewAI', 'AutoGen',
-    'Semantic Kernel', 'Haystack',
-    // MCP & Tools
-    'MCP', 'Model Context Protocol',
-    'Function Calling', 'Tool Use',
-    // RAG & Vector
-    'RAG', 'Vector Database', 'Embeddings',
-    'Pinecone', 'Weaviate', 'Chroma', 'Qdrant',
-    // Inference
-    'vLLM', 'TensorRT', 'ONNX', 'Ollama',
+    // Agent Frameworks (Tier 1)
+    'LangChain', 'LangGraph', 'LlamaIndex', 'CrewAI', 'AutoGen', 'Autogen Studio',
+    'Semantic Kernel', 'Haystack', 'DSPy', 'Instructor',
+    'Pydantic AI', 'Marvin', 'Mirascope',
+    // MCP & Tools (Tier 1)
+    'MCP', 'Model Context Protocol', 'Claude MCP',
+    'Function Calling', 'Tool Use', 'Tool Calling',
+    // RAG & Vector (Tier 2)
+    'RAG', 'Retrieval Augmented', 'Vector Database', 'Embeddings',
+    'Pinecone', 'Weaviate', 'Chroma', 'ChromaDB', 'Qdrant', 'Milvus', 'pgvector',
+    // Inference (Tier 2)
+    'vLLM', 'TensorRT', 'TensorRT-LLM', 'ONNX', 'Ollama', 'LM Studio', 'LocalAI',
+    'Groq', 'Together AI', 'Fireworks AI', 'Anyscale', 'Modal', 'Replicate',
+    // Prompting (Tier 2)
+    'Prompt Engineering', 'Chain of Thought', 'CoT', 'Few-shot', 'Zero-shot',
+    'RLHF', 'DPO', 'Fine-tuning', 'LoRA', 'QLoRA',
 ];
 
 const KNOWN_COMPANIES = [
-    'OpenAI', 'Anthropic', 'Google', 'DeepMind', 'Meta AI',
-    'Microsoft', 'Mistral AI', 'Cohere', 'AI21',
-    'Vercel', 'Supabase', 'Hugging Face',
-    'Together AI', 'Groq', 'Replicate', 'Modal',
-    'Anysphere', // Cursor
+    // AI Labs (Tier 1)
+    'OpenAI', 'Anthropic', 'Google', 'Google AI', 'DeepMind', 'Meta AI', 'Meta',
+    'Microsoft', 'Microsoft AI', 'xAI', 'X.AI',
+    // Model Providers (Tier 2)
+    'Mistral AI', 'Mistral', 'Cohere', 'AI21', 'AI21 Labs', 'Stability AI',
+    'Hugging Face', 'HuggingFace',
+    // Infrastructure (Tier 2)
+    'Together AI', 'Groq', 'Replicate', 'Modal', 'Anyscale', 'Fireworks',
+    // Dev Tools (Tier 2)
+    'Vercel', 'Supabase', 'Neon', 'Cloudflare', 'Netlify',
+    // IDE Companies (Tier 1)
+    'Anysphere', 'Cursor', 'GitHub', 'Sourcegraph', 'Replit',
+    'Codeium', 'Tabnine', 'Cognition', 'Devin',
 ];
 
 /**
@@ -121,10 +139,10 @@ export async function analyzeNewsItem(
         // Report error to pool
         apiKeyPool.reportError(apiKey, error?.status);
 
-        // Retry on rate limit with different key
-        if (error?.status === 429 && retryCount < 3) {
-            console.warn(`[Groq] Rate limited, retrying with different key (${retryCount + 1}/3)`);
-            await new Promise(resolve => setTimeout(resolve, 300 * (retryCount + 1)));
+        // Retry on rate limit with different key - max 2 retries to avoid loops
+        if (error?.status === 429 && retryCount < 2) {
+            console.warn(`[Groq] Rate limited, retrying with different key (${retryCount + 1}/2)`);
+            await new Promise(resolve => setTimeout(resolve, 500 * (retryCount + 1)));
             return analyzeNewsItem(item, retryCount + 1);
         }
 
@@ -134,58 +152,60 @@ export async function analyzeNewsItem(
 }
 
 /**
- * Vibe Coder focused analysis prompt
+ * Vibe Coder focused analysis prompt v2
+ * More precise categorization for AI developers
  */
 function createAnalysisPrompt(item: NewsItem): string {
     return `You are an AI News Analyst for VIBE CODERS and AI ENGINEERS.
-Your audience uses AI coding tools (Cursor, Copilot), builds with LLMs, and wants actionable updates.
+Your audience uses AI coding tools (Cursor, Copilot, Windsurf), builds with LLMs (LangChain, LlamaIndex), and wants actionable updates on AI models, tools, and frameworks.
 
 ANALYZE THIS NEWS:
 Title: "${item.title}"
 Source: "${item.source}"
-Content: "${item.contentSnippet.slice(0, 800)}"
+Content: "${(item.contentSnippet || item.content || '').slice(0, 1000)}"
 
-CATEGORIZE (pick ONE most relevant):
-- 'model_launch': NEW AI model release (GPT-5, Claude 4, Llama 4, Gemini 2, new Sonnet/Opus)
-- 'ide_update': Update to AI coding tools (Cursor update, Copilot feature, Windsurf, Codeium)
-- 'ide_launch': NEW AI IDE or coding tool launch
-- 'agent': AI Agents, MCP, autonomous coding, tool use, function calling
-- 'api': API updates, SDK releases, new endpoints, pricing changes
-- 'video_ai': Video generation (Sora, Runway, Kling)
-- 'image_ai': Image generation (DALL-E, Midjourney, Flux)
-- 'feature': General product updates
-- 'research': Papers, benchmarks, technical deep-dives
-- 'tutorial': How-to, guides, code examples
-- 'market': Funding, acquisitions, business news
-- 'other': Doesn't fit above
+STRICT CATEGORIZATION (pick ONE - be precise):
+- 'model_launch': ONLY for NEW AI model releases (GPT-5, Claude 4, Llama 4, new Sonnet/Opus version, DeepSeek-V3, etc.) - NOT updates to existing models
+- 'ide_update': Updates to AI coding tools (Cursor changelog, Copilot feature, Windsurf update, Codeium, VS Code AI features)
+- 'ide_launch': NEW AI IDE or coding tool launch (not updates)
+- 'agent': AI Agents, MCP, LangChain, LlamaIndex, CrewAI, autonomous coding, RAG, tool use, function calling
+- 'api': API updates, SDK releases, pricing changes, rate limits, new endpoints
+- 'video_ai': Video generation (Sora, Runway, Kling, Pika)
+- 'image_ai': Image generation (DALL-E, Midjourney, Flux, Stable Diffusion)
+- 'feature': General product updates, new features in existing tools
+- 'research': Papers, benchmarks, technical deep-dives, arxiv
+- 'tutorial': How-to, guides, code examples, cookbooks
+- 'market': Funding, acquisitions, business news, layoffs
+- 'other': Doesn't fit above (use sparingly)
 
-PRIORITY for a Vibe Coder:
-- 'breaking': MUST SEE - New flagship model (GPT-5, Claude 4), Major IDE release, Game-changer
-- 'high': Important - Significant API change, New coding feature, Framework update
-- 'normal': Good to know
-- 'low': Optional - Opinion pieces, minor news
+PRIORITY LEVELS:
+- 'breaking': RARE - Major flagship model (GPT-5, Claude 4, Gemini 2), Major IDE release, Industry-changing
+- 'high': Important - New model version, significant IDE update, major framework release, API pricing change
+- 'normal': Good to know - Regular updates, tutorials, research
+- 'low': Optional - Opinion pieces, minor news, tangential topics
 
-VIBE CODER RELEVANCE (1-10):
-- 10: New model I can use TODAY (GPT-4o update, Claude 3.5 Sonnet)
-- 9: New IDE feature I'll use (Cursor MCP, Copilot improvement)
-- 8: Framework update affecting my stack (LangChain, Next.js AI)
-- 7: New tool to try (new AI IDE, code assistant)
-- 5: Interesting but not immediately useful
-- 3: Background knowledge only
-- 1: Not relevant to AI development
+RELEVANCE SCORE (1-10) - Be strict:
+10: New flagship model release I can use NOW
+9: Major IDE update (Cursor, Copilot) with new features I'll use daily
+8: New framework version (LangChain 1.0, LlamaIndex update) affecting my stack
+7: New tool or significant API update worth trying
+6: Useful tutorial or guide for my workflow
+5: Interesting but not immediately actionable
+3-4: Background knowledge, industry news
+1-2: Not relevant to AI development
 
-Return JSON:
+Return ONLY valid JSON (no markdown):
 {
-  "category": "...",
+  "category": "model_launch|ide_update|ide_launch|agent|api|video_ai|image_ai|feature|research|tutorial|market|other",
   "priority": "breaking|high|normal|low",
-  "summary": "2 sentences: What's new + Why a vibe coder should care",
-  "tags": ["max 4 tags like LLM, Cursor, API, RAG"],
-  "relatedModels": ["GPT-4", "Claude 3.5"],
-  "relatedCompanies": ["OpenAI"],
+  "summary": "2 sentences max: What happened + Why it matters for developers",
+  "tags": ["max 4 relevant tags"],
+  "relatedModels": ["list specific model names mentioned"],
+  "relatedCompanies": ["list companies mentioned"],
   "relevanceScore": 1-10,
   "sentiment": "positive|neutral|negative",
-  "actionable": true/false,
-  "technicalImpact": "One line: What can I build/do differently now?"
+  "actionable": true or false,
+  "technicalImpact": "One sentence: What can developers build/do differently now?"
 }`;
 }
 
@@ -380,19 +400,40 @@ function extractBasicTags(item: NewsItem): string[] {
 }
 
 /**
- * Batch analyze multiple items with smart concurrency
+ * Batch analyze multiple items with optimized concurrency for 10 API keys
+ * Conservative approach to avoid rate limits on Groq free tier
  */
 export async function batchAnalyze(items: NewsItem[]): Promise<NewsItem[]> {
     const results: NewsItem[] = [];
 
-    // Determine concurrency based on available keys - keep low to avoid rate limits
+    // Conservative concurrency for Groq free tier
+    // Each key allows ~30 requests/minute, but we'll be cautious
+    // Use max 2-3 concurrent requests to avoid hitting limits
     const availableKeys = apiKeyPool.getTotalKeys();
     const concurrency = Math.min(3, Math.max(1, Math.floor(availableKeys / 4)));
 
-    console.log(`[Groq] Analyzing ${items.length} items with concurrency ${concurrency}`);
+    console.log(`[Groq] Analyzing ${items.length} items with concurrency ${concurrency} (${availableKeys} API keys)`);
 
-    for (let i = 0; i < items.length; i += concurrency) {
-        const chunk = items.slice(i, i + concurrency);
+    // Pre-filter items to skip those with existing analysis in cache
+    const itemsToProcess: NewsItem[] = [];
+    const cachedResults: NewsItem[] = [];
+
+    for (const item of items) {
+        const cached = await analysisCache.get(item.id);
+        if (cached) {
+            cachedResults.push({ ...item, ...cached });
+        } else {
+            itemsToProcess.push(item);
+        }
+    }
+
+    if (cachedResults.length > 0) {
+        console.log(`[Groq] Using ${cachedResults.length} cached analyses, processing ${itemsToProcess.length} new items`);
+    }
+
+    // Process items in parallel chunks
+    for (let i = 0; i < itemsToProcess.length; i += concurrency) {
+        const chunk = itemsToProcess.slice(i, i + concurrency);
 
         const analyzedChunk = await Promise.all(
             chunk.map(async (item) => {
@@ -404,25 +445,44 @@ export async function batchAnalyze(items: NewsItem[]): Promise<NewsItem[]> {
         results.push(...analyzedChunk);
 
         // Progress logging
-        const progress = Math.min(100, Math.round(((i + chunk.length) / items.length) * 100));
-        console.log(`[Groq] Progress: ${progress}% (${i + chunk.length}/${items.length})`);
+        const progress = Math.min(100, Math.round(((i + chunk.length) / itemsToProcess.length) * 100));
+        console.log(`[Groq] Progress: ${progress}% (${i + chunk.length}/${itemsToProcess.length})`);
 
-        // Small delay between chunks to respect rate limits
-        if (i + concurrency < items.length) {
-            await new Promise(resolve => setTimeout(resolve, 300));
+        // Longer delay between chunks to avoid rate limits
+        // Groq free tier is strict, so we add 500ms between batches
+        if (i + concurrency < itemsToProcess.length) {
+            await new Promise(resolve => setTimeout(resolve, 500));
         }
     }
 
-    // Sort by priority and relevance
-    results.sort((a, b) => {
+    // Combine cached and new results
+    const allResults = [...cachedResults, ...results];
+
+    // Sort by priority, then relevance, then date
+    allResults.sort((a, b) => {
         const priorityOrder = { breaking: 0, high: 1, normal: 2, low: 3 };
         const pA = priorityOrder[a.priority || 'normal'];
         const pB = priorityOrder[b.priority || 'normal'];
         if (pA !== pB) return pA - pB;
-        return (b.relevanceScore || 0) - (a.relevanceScore || 0);
+        
+        const scoreA = a.relevanceScore || 0;
+        const scoreB = b.relevanceScore || 0;
+        if (scoreA !== scoreB) return scoreB - scoreA;
+        
+        return new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime();
     });
 
-    return results;
+    // Filter out low relevance items (score < 4) unless they're from official sources
+    const filtered = allResults.filter(item => 
+        (item.relevanceScore && item.relevanceScore >= 4) || 
+        item.sourceTier === 'official' ||
+        item.priority === 'breaking' ||
+        item.priority === 'high'
+    );
+
+    console.log(`[Groq] Final: ${filtered.length} items after relevance filtering (removed ${allResults.length - filtered.length})`);
+
+    return filtered;
 }
 
 /**

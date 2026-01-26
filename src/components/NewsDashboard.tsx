@@ -152,13 +152,13 @@ export default function NewsDashboard() {
 
     return (
         <div className="max-w-7xl mx-auto px-4 py-8">
-            {/* Status Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-4 mb-8 p-4 rounded-2xl bg-white/5 border border-white/10">
-                <div className="flex items-center gap-4 text-sm">
+            {/* Status Bar - Enhanced */}
+            <div className="flex flex-wrap items-center justify-between gap-4 mb-8 p-4 rounded-2xl bg-gradient-to-r from-white/[0.05] to-white/[0.02] border border-white/10 backdrop-blur-sm">
+                <div className="flex flex-wrap items-center gap-3 md:gap-4 text-sm">
                     {/* Connection Status */}
-                    <div className={`flex items-center gap-2 ${fromCache ? 'text-yellow-400' : 'text-green-400'}`}>
+                    <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg ${fromCache ? 'bg-yellow-500/10 text-yellow-400' : 'bg-green-500/10 text-green-400'}`}>
                         {fromCache ? <WifiOff className="w-4 h-4" /> : <Wifi className="w-4 h-4" />}
-                        <span>{fromCache ? 'Cached' : 'Live'}</span>
+                        <span className="font-medium">{fromCache ? 'Cached' : 'Live'}</span>
                     </div>
 
                     {/* Last Updated */}
@@ -171,11 +171,11 @@ export default function NewsDashboard() {
 
                     {/* Stats */}
                     {stats && (
-                        <div className="hidden md:flex items-center gap-4 text-gray-400">
-                            <span>{stats.totalArticles} articles</span>
-                            <span>{stats.sources} sources</span>
+                        <div className="hidden md:flex items-center gap-3 text-gray-400">
+                            <span className="px-2 py-1 rounded bg-white/5">{stats.totalArticles} articles</span>
+                            <span className="px-2 py-1 rounded bg-white/5">{stats.sources} sources</span>
                             {stats.newArticles > 0 && (
-                                <span className="text-accent-cyan font-medium">
+                                <span className="px-2 py-1 rounded bg-accent-cyan/10 text-accent-cyan font-medium">
                                     {stats.newArticles} new
                                 </span>
                             )}
@@ -188,14 +188,17 @@ export default function NewsDashboard() {
                     onClick={() => fetchNews(true)}
                     disabled={isRefreshing}
                     className={`
-                        flex items-center gap-2 px-4 py-2 rounded-full
-                        bg-accent-cyan/10 text-accent-cyan border border-accent-cyan/20
-                        hover:bg-accent-cyan/20 transition-all
+                        flex items-center gap-2 px-4 py-2 rounded-xl
+                        bg-gradient-to-r from-accent-cyan/20 to-accent-purple/10 
+                        text-accent-cyan border border-accent-cyan/30
+                        hover:from-accent-cyan/30 hover:to-accent-purple/20 
+                        hover:border-accent-cyan/50 transition-all
                         disabled:opacity-50 disabled:cursor-not-allowed
+                        shadow-lg shadow-accent-cyan/5
                     `}
                 >
                     <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                    <span className="text-sm font-medium">
+                    <span className="text-sm font-semibold">
                         {isRefreshing ? 'Refreshing...' : 'Refresh'}
                     </span>
                 </button>
@@ -314,9 +317,14 @@ export default function NewsDashboard() {
                     {/* Hot News Section */}
                     {hotNews.length > 0 && activeFilter === 'all' && !searchQuery && (
                         <section className="mb-12">
-                            <div className="flex items-center gap-2 mb-6">
-                                <Zap className="w-5 h-5 text-orange-400" />
+                            <div className="flex items-center gap-3 mb-6">
+                                <div className="p-2 rounded-lg bg-gradient-to-br from-orange-500/20 to-amber-500/10 border border-orange-500/20">
+                                    <Zap className="w-5 h-5 text-orange-400" />
+                                </div>
                                 <h2 className="text-xl font-bold text-white">Hot Right Now</h2>
+                                <span className="text-xs px-2 py-1 rounded-md bg-orange-500/10 text-orange-400 font-medium">
+                                    {hotNews.length} trending
+                                </span>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 {hotNews.map((item) => (

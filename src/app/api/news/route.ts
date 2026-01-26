@@ -1,19 +1,20 @@
 /**
- * Enhanced News API Route
+ * Enhanced News API Route v2
+ * - Multi-source aggregation (Official, GitHub, HN, RSS, Product Hunt)
  * - Smart scheduling to minimize API calls
  * - Serves from cache when appropriate
  * - Full refresh only when data is stale
  */
 
 import { NextResponse } from 'next/server';
-import { fetchRSSFeeds, getFeedStats } from '@/lib/rss';
+import { fetchAllSources, getSourcesHealth } from '@/lib/sources';
 import { batchAnalyze, getAnalysisStats } from '@/lib/groq';
 import { scheduler } from '@/lib/scheduler';
 import { getCachedNews, setCachedNews, cleanupAllCaches } from '@/lib/advanced-cache';
 import { NewsItem, NewsCategory, NewsResponse } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
-export const maxDuration = 60; // Allow up to 60 seconds for full refresh
+export const maxDuration = 120; // Allow up to 120 seconds for full refresh
 
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
@@ -26,15 +27,11 @@ export async function GET(request: Request) {
 
         // If status only, return scheduler and cache status
         if (statusOnly) {
-            const [analysisStats, feedStats] = await Promise.all([
-                getAnalysisStats(),
-                Promise.resolve(getFeedStats()),
-            ]);
+            const analysisStats = await getAnalysisStats();
 
             return NextResponse.json({
                 scheduler: scheduler.getStatus(),
                 analysis: analysisStats,
-                feeds: feedStats,
             });
         }
 
@@ -73,10 +70,13 @@ export async function GET(request: Request) {
                 await scheduler.startAnalysis();
 
                 try {
-                    // Fetch RSS feeds - 3 day lookback for fresh content
-                    console.log('[API] Fetching fresh RSS feeds (last 3 days)...');
-                    const rawNews = await fetchRSSFeeds(3);
+                    // Fetch from ALL sources - 3 day lookback for fresh content
+                    console.log('[API] Fetching from all sources (last 3 days)...');
+                    const { items: rawNews, sourceStats } = await fetchAllSources(3);
                     await scheduler.completeRSSFetch();
+
+                    const sourcesHealth = getSourcesHealth(sourceStats);
+                    console.log(`[API] Sources health: ${sourcesHealth.healthy}/${sourcesHealth.total} healthy`);
 
                     if (rawNews.length === 0) {
                         await scheduler.failProcessing();
@@ -91,8 +91,9 @@ export async function GET(request: Request) {
                         );
                     }
 
-                    // Analyze with AI - limit to 25 for faster processing with free tier
-                    console.log(`[API] Analyzing ${rawNews.length} articles...`);
+                    // Analyze with AI - process top 25 items to avoid rate limits
+                    // Groq free tier is very strict, so we limit to avoid hitting limits
+                    console.log(`[API] Analyzing ${rawNews.length} articles (top 25)...`);
                     const topNews = rawNews.slice(0, 25);
                     const analyzedNews = await batchAnalyze(topNews);
 
