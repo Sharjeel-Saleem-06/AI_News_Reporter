@@ -16,7 +16,7 @@ const AI_KEYWORDS = [
     
     // IDEs & Tools
     'cursor', 'copilot', 'windsurf', 'codeium', 'tabnine', 'aider',
-    'continue', 'cody', 'bolt', 'v0',
+    'continue', 'cody', 'bolt', 'v0', 'replit',
     
     // Frameworks & Concepts
     'langchain', 'llamaindex', 'llama-index', 'rag', 'vector database',
@@ -24,10 +24,21 @@ const AI_KEYWORDS = [
     'ai agent', 'ai agents', 'mcp', 'model context protocol',
     'function calling', 'tool use',
     
+    // Gen AI & AI Engineering
+    'gen ai', 'generative ai', 'ai engineer', 'ai engineering',
+    'mlops', 'llmops', 'ai developer', 'ml engineer',
+    'prompt engineer', 'ai trainer', 'model training',
+    'ai architecture', 'ai infrastructure', 'ai workflow',
+    
     // General AI
     'llm', 'large language model', 'machine learning', 'ml',
     'artificial intelligence', 'neural network', 'transformer',
     'diffusion', 'stable diffusion', 'midjourney', 'dall-e', 'sora',
+    
+    // AI Techniques
+    'retrieval augmented generation', 'semantic search', 'vector search',
+    'context window', 'token', 'inference', 'model serving',
+    'agent framework', 'autonomous agent', 'multi-agent',
     
     // Companies
     'hugging face', 'huggingface', 'replicate', 'together ai',
@@ -35,13 +46,15 @@ const AI_KEYWORDS = [
     
     // Coding
     'ai coding', 'code generation', 'autocomplete', 'code completion',
-    'vibe coding', 'ai programming',
+    'vibe coding', 'ai programming', 'pair programming',
 ];
 
 // Negative keywords (filter out these)
+// BUT allow AI job-related content as it's relevant to AI engineers
 const NEGATIVE_KEYWORDS = [
-    'hiring', 'job', 'career', 'salary', 'compensation',
-    'ask hn', 'show hn: my portfolio', 'who is hiring',
+    'who is hiring', 'seeking work', 'for hire', 'resume review',
+    'show hn: my portfolio', 'show hn: my resume',
+    'salary negotiation', 'career advice',
 ];
 
 /**

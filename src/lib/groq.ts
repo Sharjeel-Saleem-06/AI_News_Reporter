@@ -56,19 +56,24 @@ const AI_FRAMEWORKS = [
     // Agent Frameworks (Tier 1)
     'LangChain', 'LangGraph', 'LlamaIndex', 'CrewAI', 'AutoGen', 'Autogen Studio',
     'Semantic Kernel', 'Haystack', 'DSPy', 'Instructor',
-    'Pydantic AI', 'Marvin', 'Mirascope',
+    'Pydantic AI', 'Marvin', 'Mirascope', 'AG2',
     // MCP & Tools (Tier 1)
     'MCP', 'Model Context Protocol', 'Claude MCP',
     'Function Calling', 'Tool Use', 'Tool Calling',
     // RAG & Vector (Tier 2)
-    'RAG', 'Retrieval Augmented', 'Vector Database', 'Embeddings',
+    'RAG', 'Retrieval Augmented', 'Retrieval Augmented Generation',
+    'Vector Database', 'Embeddings', 'Semantic Search',
     'Pinecone', 'Weaviate', 'Chroma', 'ChromaDB', 'Qdrant', 'Milvus', 'pgvector',
     // Inference (Tier 2)
     'vLLM', 'TensorRT', 'TensorRT-LLM', 'ONNX', 'Ollama', 'LM Studio', 'LocalAI',
     'Groq', 'Together AI', 'Fireworks AI', 'Anyscale', 'Modal', 'Replicate',
-    // Prompting (Tier 2)
+    // Prompting & Training (Tier 2)
     'Prompt Engineering', 'Chain of Thought', 'CoT', 'Few-shot', 'Zero-shot',
-    'RLHF', 'DPO', 'Fine-tuning', 'LoRA', 'QLoRA',
+    'RLHF', 'DPO', 'Fine-tuning', 'LoRA', 'QLoRA', 'Adapter',
+    // Gen AI Concepts (Tier 2)
+    'Gen AI', 'Generative AI', 'AI Engineering', 'MLOps', 'LLMOps',
+    'Context Window', 'Token Optimization', 'Model Serving',
+    'AI Architecture', 'Multi-Agent', 'Agent Orchestration',
 ];
 
 const KNOWN_COMPANIES = [
@@ -156,8 +161,13 @@ export async function analyzeNewsItem(
  * More precise categorization for AI developers
  */
 function createAnalysisPrompt(item: NewsItem): string {
-    return `You are an AI News Analyst for VIBE CODERS and AI ENGINEERS.
-Your audience uses AI coding tools (Cursor, Copilot, Windsurf), builds with LLMs (LangChain, LlamaIndex), and wants actionable updates on AI models, tools, and frameworks.
+    return `You are an AI News Analyst for AI ENGINEERS and GEN AI DEVELOPERS.
+Your audience:
+- Builds with LLMs (LangChain, LlamaIndex, RAG systems)
+- Uses AI coding tools (Cursor, Copilot, Windsurf)
+- Works on Gen AI applications and AI engineering projects
+- Interested in prompt engineering, model training, AI architecture
+- Wants actionable updates on AI models, tools, frameworks, and job-relevant skills
 
 ANALYZE THIS NEWS:
 Title: "${item.title}"
@@ -165,47 +175,55 @@ Source: "${item.source}"
 Content: "${(item.contentSnippet || item.content || '').slice(0, 1000)}"
 
 STRICT CATEGORIZATION (pick ONE - be precise):
-- 'model_launch': ONLY for NEW AI model releases (GPT-5, Claude 4, Llama 4, new Sonnet/Opus version, DeepSeek-V3, etc.) - NOT updates to existing models
-- 'ide_update': Updates to AI coding tools (Cursor changelog, Copilot feature, Windsurf update, Codeium, VS Code AI features)
-- 'ide_launch': NEW AI IDE or coding tool launch (not updates)
-- 'agent': AI Agents, MCP, LangChain, LlamaIndex, CrewAI, autonomous coding, RAG, tool use, function calling
+- 'model_launch': ONLY for NEW AI model releases (GPT-5, Claude 4, Llama 4, new Sonnet/Opus version, DeepSeek-V3, Gemini 2, etc.)
+- 'ide_update': Updates to AI coding tools (Cursor changelog, Copilot feature, Windsurf, Codeium, VS Code AI features)
+- 'ide_launch': NEW AI IDE or coding tool launch
+- 'agent': AI Agents, MCP, LangChain, LlamaIndex, CrewAI, AutoGen, autonomous coding, RAG, multi-agent systems, tool use
 - 'api': API updates, SDK releases, pricing changes, rate limits, new endpoints
 - 'video_ai': Video generation (Sora, Runway, Kling, Pika)
 - 'image_ai': Image generation (DALL-E, Midjourney, Flux, Stable Diffusion)
-- 'feature': General product updates, new features in existing tools
-- 'research': Papers, benchmarks, technical deep-dives, arxiv
-- 'tutorial': How-to, guides, code examples, cookbooks
-- 'market': Funding, acquisitions, business news, layoffs
+- 'feature': Gen AI product updates, new features in AI tools
+- 'research': Papers, benchmarks, technical deep-dives, arxiv, prompt engineering research
+- 'tutorial': How-to guides, code examples, cookbooks, prompt engineering tutorials, RAG tutorials
+- 'market': Funding, acquisitions, AI job market, hiring trends, AI engineering roles
 - 'other': Doesn't fit above (use sparingly)
 
 PRIORITY LEVELS:
-- 'breaking': RARE - Major flagship model (GPT-5, Claude 4, Gemini 2), Major IDE release, Industry-changing
-- 'high': Important - New model version, significant IDE update, major framework release, API pricing change
-- 'normal': Good to know - Regular updates, tutorials, research
+- 'breaking': RARE - Major flagship model (GPT-5, Claude 4, Gemini 2), Major IDE release, Game-changing AI tool
+- 'high': Important - New model version, significant IDE update, major framework release (LangChain 1.0), API pricing, AI job trends
+- 'normal': Good to know - Regular updates, tutorials, research papers, prompt engineering tips
 - 'low': Optional - Opinion pieces, minor news, tangential topics
 
-RELEVANCE SCORE (1-10) - Be strict:
-10: New flagship model release I can use NOW
-9: Major IDE update (Cursor, Copilot) with new features I'll use daily
-8: New framework version (LangChain 1.0, LlamaIndex update) affecting my stack
-7: New tool or significant API update worth trying
-6: Useful tutorial or guide for my workflow
-5: Interesting but not immediately actionable
-3-4: Background knowledge, industry news
-1-2: Not relevant to AI development
+RELEVANCE SCORE (1-10) - Be strict for AI Engineers:
+10: New flagship model I can use NOW in production
+9: Major IDE/tool update (Cursor, Copilot) I'll use daily
+8: Framework release (LangChain, LlamaIndex) affecting my Gen AI stack
+7: New AI engineering tool, prompt engineering breakthrough, RAG improvement
+6: Useful tutorial for AI engineering workflow, career-relevant AI skills
+5: Interesting Gen AI concept but not immediately actionable
+3-4: Background AI industry news, market updates
+1-2: Not relevant to AI engineering/Gen AI development
+
+SPECIAL ATTENTION TO:
+- Prompt engineering techniques and best practices
+- RAG (Retrieval Augmented Generation) improvements
+- LangChain, LlamaIndex, CrewAI updates
+- AI engineering job skills and career development
+- Gen AI architecture patterns
+- MLOps and LLMOps tools
 
 Return ONLY valid JSON (no markdown):
 {
   "category": "model_launch|ide_update|ide_launch|agent|api|video_ai|image_ai|feature|research|tutorial|market|other",
   "priority": "breaking|high|normal|low",
-  "summary": "2 sentences max: What happened + Why it matters for developers",
-  "tags": ["max 4 relevant tags"],
+  "summary": "2 sentences max: What happened + Why AI engineers/Gen AI developers should care",
+  "tags": ["max 4 relevant tags - include 'Gen AI', 'AI Engineer', 'Prompt Engineering', 'RAG' if applicable"],
   "relatedModels": ["list specific model names mentioned"],
   "relatedCompanies": ["list companies mentioned"],
   "relevanceScore": 1-10,
   "sentiment": "positive|neutral|negative",
   "actionable": true or false,
-  "technicalImpact": "One sentence: What can developers build/do differently now?"
+  "technicalImpact": "One sentence: What can AI engineers build/do differently now?"
 }`;
 }
 
@@ -378,23 +396,42 @@ function createFallbackAnalysis(item: NewsItem): Partial<NewsItem> {
 }
 
 /**
- * Extract basic tags from content
+ * Extract basic tags from content - Enhanced for Gen AI and AI Engineer focus
  */
 function extractBasicTags(item: NewsItem): string[] {
     const text = `${item.title} ${item.contentSnippet}`.toLowerCase();
     const tags: string[] = [];
 
+    // Gen AI & AI Engineering
+    if (text.includes('gen ai') || text.includes('generative ai')) tags.push('Gen AI');
+    if (text.includes('ai engineer') || text.includes('ai engineering')) tags.push('AI Engineer');
+    if (text.includes('mlops') || text.includes('llmops')) tags.push('MLOps');
+    
+    // Core AI Concepts
     if (text.includes('llm') || text.includes('language model')) tags.push('LLM');
+    if (text.includes('prompt engineering') || text.includes('prompting')) tags.push('Prompt Engineering');
+    if (text.includes('rag') || text.includes('retrieval augmented')) tags.push('RAG');
+    
+    // Frameworks
+    if (text.includes('langchain')) tags.push('LangChain');
+    if (text.includes('llamaindex') || text.includes('llama-index')) tags.push('LlamaIndex');
+    if (text.includes('crewai')) tags.push('CrewAI');
+    if (text.includes('autogen')) tags.push('AutoGen');
+    
+    // Technologies
     if (text.includes('api')) tags.push('API');
     if (text.includes('python')) tags.push('Python');
     if (text.includes('javascript') || text.includes('typescript')) tags.push('JavaScript');
     if (text.includes('react') || text.includes('next.js')) tags.push('React');
-    if (text.includes('rag')) tags.push('RAG');
     if (text.includes('agent')) tags.push('Agents');
     if (text.includes('fine-tun')) tags.push('Fine-tuning');
-    if (text.includes('prompt')) tags.push('Prompting');
     if (text.includes('embedding')) tags.push('Embeddings');
     if (text.includes('vector')) tags.push('Vector DB');
+    if (text.includes('semantic search')) tags.push('Semantic Search');
+    
+    // Career & Skills
+    if (text.includes('job') || text.includes('hiring') || text.includes('career')) tags.push('Career');
+    if (text.includes('tutorial') || text.includes('guide')) tags.push('Tutorial');
 
     return tags.slice(0, 4);
 }

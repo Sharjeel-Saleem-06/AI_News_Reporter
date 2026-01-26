@@ -229,6 +229,8 @@ const AI_KEYWORDS = [
     'agent', 'prompt', 'fine-tun', 'model', 'neural', 'transformer',
     'diffusion', 'generation', 'inference', 'training',
     'api', 'sdk', 'coding', 'code', 'programming',
+    'gen ai', 'generative ai', 'ai engineer', 'ai engineering',
+    'mlops', 'llmops', 'prompt engineering', 'retrieval augmented',
 ];
 
 /**
