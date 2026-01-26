@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { NewsItem, CATEGORY_CONFIG, PRIORITY_CONFIG } from '@/lib/types';
+import { cleanContentSnippet } from '@/lib/utils';
 import {
     ExternalLink, Zap, Rocket, TrendingUp, Calendar,
     Microscope, BookOpen, Terminal, Video, Image,
@@ -123,7 +124,7 @@ export function NewsCard({ item, variant = 'default' }: NewsCardProps) {
 
                 {/* Summary */}
                 <p className="text-sm text-gray-400 leading-relaxed mb-4 line-clamp-3 flex-grow">
-                    {item.summary || item.contentSnippet?.slice(0, 150) + '...'}
+                    {item.summary || cleanContentSnippet(item.contentSnippet || '', 150)}
                 </p>
 
                 {/* Tags */}
@@ -259,7 +260,7 @@ function FeaturedCard({
 
                     {/* Summary */}
                     <p className="text-base md:text-lg text-gray-300 leading-relaxed max-w-3xl">
-                        {item.summary || item.contentSnippet?.slice(0, 300) + '...'}
+                        {item.summary || cleanContentSnippet(item.contentSnippet || item.content || '', 300)}
                     </p>
 
                     {/* Technical Impact */}

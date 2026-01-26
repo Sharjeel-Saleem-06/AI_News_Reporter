@@ -8,6 +8,7 @@
 import Parser from 'rss-parser';
 import { NewsItem, NewsSource, SourceTier, NewsCategory } from '../types';
 import { subDays, isAfter } from 'date-fns';
+import { stripHtml } from '../utils';
 
 const parser = new Parser({
     headers: {
@@ -252,7 +253,7 @@ export async function fetchEnhancedRSS(lookbackDays: number = 3): Promise<NewsIt
                         pubDate: item.pubDate || item.isoDate || new Date().toISOString(),
                         source: feed.name,
                         sourceTier: feed.tier,
-                        contentSnippet: item.contentSnippet || item.content || item.summary || '',
+                        contentSnippet: stripHtml(item.contentSnippet || item.content || item.summary || ''),
                         content: item.content || item.contentSnippet || '',
                         imageUrl: extractImageUrl(item),
                         category: feed.categories[0] as NewsCategory,

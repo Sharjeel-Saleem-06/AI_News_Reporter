@@ -10,6 +10,7 @@
 
 import { NewsItem, NewsCategory } from '../types';
 import { subDays, isAfter, parseISO, format } from 'date-fns';
+import { stripHtml } from '../utils';
 
 interface ChangelogSource {
     name: string;
@@ -118,7 +119,7 @@ export async function fetchOfficialChangelogs(lookbackDays: number = 3): Promise
                         pubDate: item.pubDate || item.isoDate || new Date().toISOString(),
                         source: source.name,
                         sourceTier: 'official' as const,
-                        contentSnippet: item.contentSnippet || item.content?.slice(0, 500) || '',
+                        contentSnippet: stripHtml(item.contentSnippet || item.content || '').slice(0, 500),
                         content: item.content || '',
                         category: source.category,
                     })).filter(item => {

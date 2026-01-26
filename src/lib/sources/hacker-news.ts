@@ -147,6 +147,9 @@ async function fetchStory(id: number, cutoffDate: Date): Promise<NewsItem | null
         // Determine category
         const category = determineCategory(combined, matchedKeywords);
         
+        // Clean text content
+        const cleanText = story.text ? story.text.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim() : '';
+        
         return {
             id: `hn-${story.id}`,
             title: story.title,
@@ -154,8 +157,8 @@ async function fetchStory(id: number, cutoffDate: Date): Promise<NewsItem | null
             pubDate: storyDate.toISOString(),
             source: 'Hacker News',
             sourceTier: 'community',
-            contentSnippet: story.text 
-                ? story.text.replace(/<[^>]*>/g, '').slice(0, 300) + '...'
+            contentSnippet: cleanText 
+                ? cleanText.slice(0, 300) + '...'
                 : `${story.score} points | ${story.descendants || 0} comments`,
             content: story.text || '',
             category,
