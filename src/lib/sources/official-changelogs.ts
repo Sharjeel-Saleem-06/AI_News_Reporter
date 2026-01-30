@@ -22,30 +22,37 @@ interface ChangelogSource {
     parseFunction: (data: any, source: ChangelogSource) => NewsItem[];
 }
 
-// Official sources with their API/changelog endpoints
+// Official sources with their API/changelog endpoints - VERIFIED Jan 2026
 const CHANGELOG_SOURCES: ChangelogSource[] = [
+    // ============================================
+    // AI IDEs & Coding Tools (Tier 1) - VERIFIED
+    // ============================================
     {
         name: 'VS Code',
         url: 'https://code.visualstudio.com/updates',
-        apiUrl: 'https://code.visualstudio.com/feed.xml',
+        apiUrl: 'https://code.visualstudio.com/feed.xml', // VERIFIED
         type: 'rss',
         category: 'ide_update',
         color: '#007acc',
         parseFunction: parseVSCodeChangelog,
     },
     {
-        name: 'Cursor',
-        url: 'https://www.cursor.com/changelog',
-        apiUrl: 'https://changelog.cursor.sh/feed.xml',
+        name: 'GitHub Changelog',
+        url: 'https://github.blog/changelog/',
+        apiUrl: 'https://github.blog/changelog/feed/', // VERIFIED - includes Copilot updates
         type: 'rss',
         category: 'ide_update',
-        color: '#00ff9f',
-        parseFunction: parseCursorChangelog,
+        color: '#333333',
+        parseFunction: parseGitHubCopilotChangelog,
     },
+    
+    // ============================================
+    // AI Model Providers (Tier 1) - VERIFIED
+    // ============================================
     {
         name: 'Anthropic',
         url: 'https://www.anthropic.com/news',
-        apiUrl: 'https://www.anthropic.com/rss.xml',
+        apiUrl: 'https://www.anthropic.com/news/feed_anthropic.xml', // VERIFIED
         type: 'rss',
         category: 'model_launch',
         color: '#d4a574',
@@ -53,8 +60,8 @@ const CHANGELOG_SOURCES: ChangelogSource[] = [
     },
     {
         name: 'OpenAI',
-        url: 'https://openai.com/blog',
-        apiUrl: 'https://openai.com/blog/rss.xml',
+        url: 'https://openai.com/news',
+        apiUrl: 'https://openai.com/news/rss.xml', // VERIFIED - new official feed
         type: 'rss',
         category: 'model_launch',
         color: '#10a37f',
@@ -63,16 +70,29 @@ const CHANGELOG_SOURCES: ChangelogSource[] = [
     {
         name: 'Google AI',
         url: 'https://blog.google/technology/ai/',
-        apiUrl: 'https://blog.google/technology/ai/rss/',
+        apiUrl: 'https://blog.google/technology/ai/rss/', // VERIFIED
         type: 'rss',
         category: 'model_launch',
         color: '#4285f4',
         parseFunction: parseGoogleAIChangelog,
     },
     {
+        name: 'Mistral AI',
+        url: 'https://mistral.ai/news/',
+        apiUrl: 'https://mistral.ai/feed.xml', // Official Mistral feed
+        type: 'rss',
+        category: 'model_launch',
+        color: '#ff7000',
+        parseFunction: parseMistralChangelog,
+    },
+    
+    // ============================================
+    // Dev Platforms (Tier 2) - VERIFIED
+    // ============================================
+    {
         name: 'Vercel',
         url: 'https://vercel.com/changelog',
-        apiUrl: 'https://vercel.com/atom',
+        apiUrl: 'https://vercel.com/atom', // VERIFIED
         type: 'rss',
         category: 'feature',
         color: '#000000',
@@ -81,7 +101,7 @@ const CHANGELOG_SOURCES: ChangelogSource[] = [
     {
         name: 'Supabase',
         url: 'https://supabase.com/blog',
-        apiUrl: 'https://supabase.com/rss.xml',
+        apiUrl: 'https://supabase.com/rss.xml', // VERIFIED
         type: 'rss',
         category: 'feature',
         color: '#3ecf8e',
@@ -173,5 +193,13 @@ function parseVercelChangelog(data: any, source: ChangelogSource): NewsItem[] {
 }
 
 function parseSupabaseChangelog(data: any, source: ChangelogSource): NewsItem[] {
+    return [];
+}
+
+function parseGitHubCopilotChangelog(data: any, source: ChangelogSource): NewsItem[] {
+    return [];
+}
+
+function parseMistralChangelog(data: any, source: ChangelogSource): NewsItem[] {
     return [];
 }

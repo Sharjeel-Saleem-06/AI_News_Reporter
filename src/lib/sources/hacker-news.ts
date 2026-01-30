@@ -8,41 +8,85 @@ import { subDays, isAfter, fromUnixTime } from 'date-fns';
 
 const HN_API_BASE = 'https://hacker-news.firebaseio.com/v0';
 
-// AI-related keywords to filter stories
+// AI-related keywords to filter stories - Updated Jan 2026
 const AI_KEYWORDS = [
-    // Models
-    'gpt', 'gpt-4', 'gpt-5', 'claude', 'gemini', 'llama', 'mistral', 'qwen',
-    'deepseek', 'anthropic', 'openai', 'chatgpt', 'o1', 'o3',
+    // Flagship Models (Tier 1)
+    'gpt', 'gpt-4', 'gpt-5', 'gpt-5.2', 'gpt-5.2-codex', 'o1', 'o3', 'o1-pro', 'chatgpt',
+    'claude', 'claude 4', 'claude 4.5', 'sonnet 4', 'opus 4', 'haiku 4',
+    'gemini', 'gemini 3', 'gemini 3 flash', 'gemini pro', 'gemini ultra',
+    'grok', 'grok 3', 'grok 4', 'grok 4.1',
     
-    // IDEs & Tools
-    'cursor', 'copilot', 'windsurf', 'codeium', 'tabnine', 'aider',
-    'continue', 'cody', 'bolt', 'v0', 'replit',
+    // Kimi & Chinese Models (NEW)
+    'kimi', 'kimi k2', 'kimi k2.5', 'kimi k2 thinking', 'moonshot ai', 'moonshot',
+    'yi', 'yi-lightning', '01.ai', 'zero one ai',
+    'deepseek', 'deepseek-v3', 'deepseek-r1', 'deepseek coder',
+    'qwen', 'qwen 2.5', 'qwq', 'alibaba ai',
+    'baichuan', 'glm', 'glm-4', 'chatglm', 'zhipu',
+    'ernie', 'ernie bot', 'baidu ai',
+    
+    // Open Source Models
+    'llama', 'llama 3', 'llama 4', 'codellama',
+    'mistral', 'mixtral', 'codestral', 'pixtral',
+    'phi-4', 'phi-3', 'gemma', 'gemma 3',
+    
+    // Enterprise Models
+    'command r', 'command r+', 'cohere command',
+    'reka', 'reka core', 'reka flash',
+    'nemotron', 'nvidia nemotron',
+    
+    // Companies
+    'openai', 'anthropic', 'google ai', 'deepmind', 'meta ai',
+    'xai', 'x.ai', 'mistral ai',
+    'hugging face', 'huggingface', 'replicate', 'together ai',
+    'groq', 'perplexity', 'cohere', 'ai21',
+    
+    // AI IDEs & Tools (Tier 1)
+    'cursor', 'cursor 2', 'cursor ide',
+    'copilot', 'github copilot', 'copilot workspace',
+    'windsurf', 'codeium', 'tabnine', 'supermaven',
+    'antigravity', 'antigravity ide', 'google antigravity',
+    'aider', 'continue', 'cody', 'bolt', 'v0', 'replit',
+    'devin', 'cognition', 'lovable', 'trae', 'melty',
+    'pearai', 'void editor', 'cline', 'roo code',
     
     // Frameworks & Concepts
-    'langchain', 'llamaindex', 'llama-index', 'rag', 'vector database',
-    'embedding', 'fine-tuning', 'fine tuning', 'prompt engineering',
-    'ai agent', 'ai agents', 'mcp', 'model context protocol',
-    'function calling', 'tool use',
+    'langchain', 'langgraph', 'langsmith', 'langserve',
+    'llamaindex', 'llama-index', 'llamaparse', 'llamacloud',
+    'crewai', 'autogen', 'semantic kernel', 'dspy', 'instructor',
+    'pydantic ai', 'openai swarm', 'bee ai',
+    'dify', 'flowise', 'n8n ai', 'langflow',
+    'opendevin', 'swe-agent', 'agentops',
+    
+    // RAG & Vector
+    'rag', 'vector database', 'embedding', 'embeddings',
+    'pinecone', 'weaviate', 'chroma', 'chromadb', 'qdrant', 'milvus', 'pgvector',
+    'lancedb', 'turbopuffer', 'supabase vector',
+    
+    // MCP & Tools
+    'mcp', 'model context protocol', 'claude mcp',
+    'function calling', 'tool use', 'tool calling',
     
     // Gen AI & AI Engineering
     'gen ai', 'generative ai', 'ai engineer', 'ai engineering',
     'mlops', 'llmops', 'ai developer', 'ml engineer',
-    'prompt engineer', 'ai trainer', 'model training',
+    'prompt engineer', 'prompt engineering', 'ai trainer', 'model training',
     'ai architecture', 'ai infrastructure', 'ai workflow',
+    'fine-tuning', 'fine tuning', 'lora', 'qlora',
     
     // General AI
-    'llm', 'large language model', 'machine learning', 'ml',
+    'llm', 'large language model', 'machine learning',
     'artificial intelligence', 'neural network', 'transformer',
-    'diffusion', 'stable diffusion', 'midjourney', 'dall-e', 'sora',
-    
-    // AI Techniques
-    'retrieval augmented generation', 'semantic search', 'vector search',
     'context window', 'token', 'inference', 'model serving',
-    'agent framework', 'autonomous agent', 'multi-agent',
+    'agent framework', 'autonomous agent', 'multi-agent', 'agentic ai',
     
-    // Companies
-    'hugging face', 'huggingface', 'replicate', 'together ai',
-    'groq', 'perplexity', 'cohere',
+    // Image/Video AI
+    'diffusion', 'stable diffusion', 'sdxl', 'flux',
+    'midjourney', 'dall-e', 'sora', 'imagen',
+    'runway', 'kling', 'pika', 'luma',
+    
+    // Inference & Infrastructure
+    'vllm', 'tensorrt', 'ollama', 'lm studio', 'localai',
+    'modal', 'runpod', 'lambda labs', 'cerebras', 'sambanova',
     
     // Coding
     'ai coding', 'code generation', 'autocomplete', 'code completion',

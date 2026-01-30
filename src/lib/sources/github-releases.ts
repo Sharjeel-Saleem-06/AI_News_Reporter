@@ -14,29 +14,41 @@ interface GitHubRepo {
     color: string;
 }
 
-// Key AI/ML repositories to track
+// Key AI/ML repositories to track - Updated Jan 2026
 const TRACKED_REPOS: GitHubRepo[] = [
-    // AI Frameworks
+    // AI Frameworks (Tier 1)
     { owner: 'langchain-ai', repo: 'langchain', name: 'LangChain', category: 'agent', color: '#1c3c3c' },
+    { owner: 'langchain-ai', repo: 'langgraph', name: 'LangGraph', category: 'agent', color: '#1c3c3c' },
     { owner: 'run-llama', repo: 'llama_index', name: 'LlamaIndex', category: 'agent', color: '#7c3aed' },
     { owner: 'microsoft', repo: 'autogen', name: 'AutoGen', category: 'agent', color: '#00a4ef' },
     { owner: 'joaomdmoura', repo: 'crewAI', name: 'CrewAI', category: 'agent', color: '#ff6b6b' },
+    { owner: 'stanfordnlp', repo: 'dspy', name: 'DSPy', category: 'agent', color: '#8b0000' },
+    { owner: 'pydantic', repo: 'pydantic-ai', name: 'Pydantic AI', category: 'agent', color: '#e92063' },
+    { owner: 'openai', repo: 'swarm', name: 'OpenAI Swarm', category: 'agent', color: '#10a37f' },
     
-    // LLMs & Models
+    // LLMs & Models (Tier 1)
     { owner: 'ollama', repo: 'ollama', name: 'Ollama', category: 'model_launch', color: '#ffffff' },
     { owner: 'ggerganov', repo: 'llama.cpp', name: 'llama.cpp', category: 'model_launch', color: '#333333' },
     { owner: 'huggingface', repo: 'transformers', name: 'HF Transformers', category: 'model_launch', color: '#ff9d00' },
     { owner: 'vllm-project', repo: 'vllm', name: 'vLLM', category: 'api', color: '#7c3aed' },
+    { owner: 'deepseek-ai', repo: 'DeepSeek-Coder', name: 'DeepSeek Coder', category: 'model_launch', color: '#4f46e5' },
+    { owner: 'MoonshotAI', repo: 'Kimi-K2', name: 'Kimi K2', category: 'model_launch', color: '#0ea5e9' },
+    { owner: '01-ai', repo: 'Yi', name: 'Yi', category: 'model_launch', color: '#f97316' },
+    { owner: 'QwenLM', repo: 'Qwen', name: 'Qwen', category: 'model_launch', color: '#3b82f6' },
     
-    // AI Coding Tools
+    // AI Coding Tools (Tier 1)
     { owner: 'Aider-AI', repo: 'aider', name: 'Aider', category: 'ide_update', color: '#00ff9f' },
     { owner: 'continuedev', repo: 'continue', name: 'Continue', category: 'ide_update', color: '#0066ff' },
     { owner: 'sourcegraph', repo: 'cody', name: 'Cody', category: 'ide_update', color: '#ff5733' },
+    { owner: 'cline', repo: 'cline', name: 'Cline', category: 'ide_update', color: '#22c55e' },
+    { owner: 'getcursor', repo: 'cursor', name: 'Cursor', category: 'ide_update', color: '#000000' },
     
     // Vector DBs & RAG
     { owner: 'chroma-core', repo: 'chroma', name: 'ChromaDB', category: 'agent', color: '#ff6b6b' },
     { owner: 'qdrant', repo: 'qdrant', name: 'Qdrant', category: 'agent', color: '#dc2626' },
     { owner: 'weaviate', repo: 'weaviate', name: 'Weaviate', category: 'agent', color: '#00d26a' },
+    { owner: 'lancedb', repo: 'lancedb', name: 'LanceDB', category: 'agent', color: '#7c3aed' },
+    { owner: 'milvus-io', repo: 'milvus', name: 'Milvus', category: 'agent', color: '#00a1ea' },
     
     // AI Infrastructure
     { owner: 'BerriAI', repo: 'litellm', name: 'LiteLLM', category: 'api', color: '#10a37f' },
@@ -45,10 +57,23 @@ const TRACKED_REPOS: GitHubRepo[] = [
     
     // MCP (Model Context Protocol)
     { owner: 'modelcontextprotocol', repo: 'servers', name: 'MCP Servers', category: 'agent', color: '#8b5cf6' },
+    { owner: 'modelcontextprotocol', repo: 'typescript-sdk', name: 'MCP TypeScript SDK', category: 'agent', color: '#3178c6' },
+    { owner: 'modelcontextprotocol', repo: 'python-sdk', name: 'MCP Python SDK', category: 'agent', color: '#3776ab' },
+    
+    // Agentic AI Platforms (NEW)
+    { owner: 'langflow-ai', repo: 'langflow', name: 'Langflow', category: 'agent', color: '#ff7f0e' },
+    { owner: 'FlowiseAI', repo: 'Flowise', name: 'Flowise', category: 'agent', color: '#6366f1' },
+    { owner: 'All-Hands-AI', repo: 'OpenHands', name: 'OpenHands (OpenDevin)', category: 'agent', color: '#ef4444' },
+    { owner: 'princeton-nlp', repo: 'SWE-agent', name: 'SWE-agent', category: 'agent', color: '#ff6600' },
+    
+    // Prompt Engineering & Evaluation
+    { owner: 'promptfoo', repo: 'promptfoo', name: 'Promptfoo', category: 'tutorial', color: '#8b5cf6' },
+    { owner: 'langfuse', repo: 'langfuse', name: 'Langfuse', category: 'api', color: '#ec4899' },
     
     // Image/Video AI
     { owner: 'AUTOMATIC1111', repo: 'stable-diffusion-webui', name: 'SD WebUI', category: 'image_ai', color: '#ff9d00' },
     { owner: 'comfyanonymous', repo: 'ComfyUI', name: 'ComfyUI', category: 'image_ai', color: '#22c55e' },
+    { owner: 'black-forest-labs', repo: 'flux', name: 'FLUX', category: 'image_ai', color: '#000000' },
 ];
 
 /**

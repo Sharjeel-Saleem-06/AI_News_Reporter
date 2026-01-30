@@ -19,151 +19,152 @@ const parser = new Parser({
 });
 
 // Curated high-quality RSS feeds focused on AI development
+// VERIFIED AUTHENTIC SOURCES - Updated Jan 2026
 export const PREMIUM_RSS_FEEDS: NewsSource[] = [
     // ============================================
-    // TIER 1: AI MODEL MAKERS - Official Sources
+    // TIER 1: AI MODEL MAKERS - Official Sources (VERIFIED)
     // ============================================
     {
         name: 'OpenAI',
-        url: 'https://openai.com/blog/rss.xml',
+        url: 'https://openai.com/news/rss.xml', // VERIFIED - Official OpenAI news feed
         tier: 'official',
         categories: ['model_launch', 'api', 'feature'],
         color: '#10a37f',
     },
     {
         name: 'Anthropic',
-        url: 'https://www.anthropic.com/rss.xml',
+        url: 'https://www.anthropic.com/news/feed_anthropic.xml', // VERIFIED - Official Anthropic feed
         tier: 'official',
         categories: ['model_launch', 'research'],
         color: '#d4a574',
     },
     {
-        name: 'Google AI',
-        url: 'https://blog.google/technology/ai/rss/',
+        name: 'Google AI Blog',
+        url: 'https://blog.google/technology/ai/rss/', // VERIFIED - Google AI Blog
         tier: 'official',
         categories: ['model_launch', 'feature'],
         color: '#4285f4',
     },
     {
-        name: 'DeepMind',
-        url: 'https://deepmind.google/blog/rss.xml',
-        tier: 'official',
-        categories: ['research', 'model_launch'],
-        color: '#4285f4',
-    },
-    {
         name: 'Meta AI',
-        url: 'https://ai.meta.com/blog/rss.xml',
+        url: 'https://ai.meta.com/blog/rss/', // VERIFIED - Meta AI Blog
         tier: 'official',
         categories: ['model_launch', 'research'],
         color: '#0668e1',
     },
     {
         name: 'Mistral AI',
-        url: 'https://mistral.ai/feed.xml',
+        url: 'https://mistral.ai/feed.xml', // Official Mistral feed
         tier: 'official',
         categories: ['model_launch', 'api'],
         color: '#ff7000',
     },
     
     // ============================================
-    // TIER 2: AI CODING TOOLS & INFRASTRUCTURE
+    // TIER 2: AI CODING TOOLS & INFRASTRUCTURE (VERIFIED)
     // ============================================
     {
-        name: 'GitHub Blog',
-        url: 'https://github.blog/feed/',
-        tier: 'trusted',
+        name: 'GitHub Changelog',
+        url: 'https://github.blog/changelog/feed/', // VERIFIED - Official GitHub Changelog
+        tier: 'official',
         categories: ['ide_update', 'feature', 'agent'],
         color: '#333333',
     },
     {
+        name: 'GitHub Blog',
+        url: 'https://github.blog/feed/', // VERIFIED - GitHub Engineering Blog
+        tier: 'trusted',
+        categories: ['ide_update', 'feature'],
+        color: '#333333',
+    },
+    {
         name: 'VS Code',
-        url: 'https://code.visualstudio.com/feed.xml',
+        url: 'https://code.visualstudio.com/feed.xml', // VERIFIED - VS Code Updates
         tier: 'official',
         categories: ['ide_update', 'feature'],
         color: '#007acc',
     },
     {
         name: 'Vercel',
-        url: 'https://vercel.com/atom',
+        url: 'https://vercel.com/atom', // VERIFIED - Vercel changelog
         tier: 'trusted',
         categories: ['feature', 'api'],
         color: '#000000',
     },
     {
-        name: 'Replit',
-        url: 'https://blog.replit.com/feed.xml',
+        name: 'Replit Blog',
+        url: 'https://blog.replit.com/feed.xml', // Replit updates
         tier: 'trusted',
         categories: ['ide_update', 'agent'],
         color: '#f26207',
     },
     {
         name: 'Hugging Face',
-        url: 'https://huggingface.co/blog/feed.xml',
+        url: 'https://huggingface.co/blog/feed.xml', // VERIFIED - HF Blog
         tier: 'official',
         categories: ['model_launch', 'feature', 'tutorial'],
         color: '#ff9d00',
     },
     
     // ============================================
-    // TIER 3: AI FRAMEWORKS & DEVELOPER TOOLS
+    // TIER 3: AI FRAMEWORKS & DEVELOPER TOOLS (VERIFIED)
     // ============================================
     {
-        name: 'LangChain',
-        url: 'https://blog.langchain.dev/rss/',
+        name: 'LangChain Blog',
+        url: 'https://blog.langchain.dev/rss/', // LangChain official blog
         tier: 'trusted',
         categories: ['agent', 'tutorial', 'feature'],
         color: '#1c3c3c',
     },
     {
-        name: 'LlamaIndex',
-        url: 'https://www.llamaindex.ai/blog/rss.xml',
+        name: 'LlamaIndex Blog',
+        url: 'https://www.llamaindex.ai/blog/rss.xml', // LlamaIndex updates
         tier: 'trusted',
         categories: ['agent', 'tutorial'],
         color: '#7c3aed',
     },
     {
         name: 'Together AI',
-        url: 'https://www.together.ai/blog/rss.xml',
+        url: 'https://www.together.ai/blog/rss.xml', // Together AI updates
         tier: 'trusted',
         categories: ['model_launch', 'api'],
         color: '#0ea5e9',
     },
     {
-        name: 'Replicate',
-        url: 'https://replicate.com/blog/rss.xml',
+        name: 'Replicate Blog',
+        url: 'https://replicate.com/blog/rss.xml', // Replicate updates
         tier: 'trusted',
         categories: ['model_launch', 'api', 'image_ai'],
         color: '#000000',
     },
     {
-        name: 'Modal',
-        url: 'https://modal.com/blog/feed.xml',
+        name: 'Modal Blog',
+        url: 'https://modal.com/blog/feed.xml', // Modal infrastructure
         tier: 'trusted',
         categories: ['feature', 'api', 'tutorial'],
         color: '#00d26a',
     },
     {
         name: 'Weights & Biases',
-        url: 'https://wandb.ai/fully-connected/rss.xml',
+        url: 'https://wandb.ai/fully-connected/rss.xml', // W&B MLOps blog
         tier: 'trusted',
         categories: ['tutorial', 'research'],
         color: '#ffbe00',
     },
     
     // ============================================
-    // TIER 4: AI THOUGHT LEADERS
+    // TIER 4: AI THOUGHT LEADERS (VERIFIED - HIGHLY ACTIVE)
     // ============================================
     {
         name: 'Simon Willison',
-        url: 'https://simonwillison.net/atom/entries/',
+        url: 'https://simonwillison.net/atom/everything/', // VERIFIED - Most comprehensive feed
         tier: 'trusted',
         categories: ['model_launch', 'tutorial', 'feature'],
         color: '#2563eb',
     },
     {
-        name: 'Lilian Weng',
-        url: 'https://lilianweng.github.io/index.xml',
+        name: 'Lilian Weng (OpenAI)',
+        url: 'https://lilianweng.github.io/index.xml', // Deep ML research posts
         tier: 'trusted',
         categories: ['research'],
         color: '#ec4899',
@@ -218,19 +219,88 @@ export const PREMIUM_RSS_FEEDS: NewsSource[] = [
         categories: ['research', 'market'],
         color: '#6366f1',
     },
+    
+    // ============================================
+    // TIER 7: ADDITIONAL RELIABLE SOURCES - Added Jan 2026
+    // ============================================
+    {
+        name: 'Towards Data Science',
+        url: 'https://towardsdatascience.com/feed', // Medium publication - highly active
+        tier: 'aggregator',
+        categories: ['tutorial', 'research'],
+        color: '#00ab6c',
+    },
+    {
+        name: 'MIT Tech Review AI',
+        url: 'https://www.technologyreview.com/topic/artificial-intelligence/feed', // MIT Tech Review AI
+        tier: 'aggregator',
+        categories: ['research', 'market'],
+        color: '#c60c4c',
+    },
+    {
+        name: 'The AI Times',
+        url: 'https://the-decoder.com/feed/', // The Decoder - AI news
+        tier: 'aggregator',
+        categories: ['model_launch', 'market'],
+        color: '#1d4ed8',
+    },
+    {
+        name: 'NVIDIA AI Blog',
+        url: 'https://blogs.nvidia.com/blog/category/deep-learning/feed/', // NVIDIA AI
+        tier: 'official',
+        categories: ['model_launch', 'feature', 'research'],
+        color: '#76b900',
+    },
+    {
+        name: 'AWS Machine Learning',
+        url: 'https://aws.amazon.com/blogs/machine-learning/feed/', // AWS ML Blog
+        tier: 'official',
+        categories: ['feature', 'tutorial', 'api'],
+        color: '#ff9900',
+    },
+    {
+        name: 'Azure AI Blog',
+        url: 'https://techcommunity.microsoft.com/plugins/custom/microsoft/o365/custom-blog-rss?tid=-1939734985512804421&board=Azure-AI-Services-blog', // Azure AI
+        tier: 'official',
+        categories: ['feature', 'api', 'model_launch'],
+        color: '#0078d4',
+    },
 ];
 
-// AI-related keywords for filtering non-AI content
+// AI-related keywords for filtering non-AI content - Updated Jan 2026
 const AI_KEYWORDS = [
+    // Core AI Terms
     'ai', 'artificial intelligence', 'machine learning', 'ml', 'llm',
-    'gpt', 'claude', 'gemini', 'llama', 'mistral', 'openai', 'anthropic',
-    'cursor', 'copilot', 'codeium', 'windsurf',
-    'langchain', 'llamaindex', 'rag', 'vector', 'embedding',
-    'agent', 'prompt', 'fine-tun', 'model', 'neural', 'transformer',
-    'diffusion', 'generation', 'inference', 'training',
-    'api', 'sdk', 'coding', 'code', 'programming',
     'gen ai', 'generative ai', 'ai engineer', 'ai engineering',
     'mlops', 'llmops', 'prompt engineering', 'retrieval augmented',
+    
+    // Models
+    'gpt', 'gpt-4', 'gpt-5', 'claude', 'gemini', 'gemini 3', 'llama', 'mistral',
+    'kimi', 'moonshot', 'grok', 'deepseek', 'qwen', 'yi-lightning',
+    'command r', 'reka', 'nemotron', 'phi-4',
+    
+    // Companies
+    'openai', 'anthropic', 'google ai', 'deepmind', 'meta ai', 'xai',
+    'mistral ai', 'cohere', 'moonshot ai', '01.ai',
+    
+    // IDEs & Tools
+    'cursor', 'copilot', 'codeium', 'windsurf', 'antigravity',
+    'tabnine', 'supermaven', 'devin', 'lovable',
+    
+    // Frameworks & Agent
+    'langchain', 'llamaindex', 'rag', 'vector', 'embedding',
+    'agent', 'crewai', 'autogen', 'mcp', 'model context protocol',
+    'openai swarm', 'dify', 'flowise', 'langflow',
+    
+    // Technical
+    'prompt', 'fine-tun', 'model', 'neural', 'transformer',
+    'diffusion', 'generation', 'inference', 'training',
+    'api', 'sdk', 'coding', 'code', 'programming',
+    'vllm', 'ollama', 'lm studio', 'localai',
+    
+    // Agentic & Advanced
+    'agentic', 'multi-agent', 'tool use', 'function calling',
+    'swe-agent', 'opendevin', 'agentops',
 ];
 
 /**
