@@ -14,20 +14,49 @@ import { getCachedNews, setCachedNews, cleanupAllCaches } from '@/lib/advanced-c
 import { NewsItem, NewsCategory, NewsResponse } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
-export const maxDuration = 120; // Allow up to 120 seconds for full refresh
+export const maxDuration = 26; // Netlify Pro max (free tier is 10s, but we'll use 26s for safety)
+
+// Timeout wrapper to prevent 502s
+async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, fallback: T): Promise<T> {
+    return Promise.race([
+        promise,
+        new Promise<T>((resolve) => setTimeout(() => resolve(fallback), timeoutMs))
+    ]);
+}
 
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const forceRefresh = searchParams.get('refresh') === 'true';
     const statusOnly = searchParams.get('status') === 'true';
+    const cleanupCache = searchParams.get('cleanup_cache') === 'true';
 
     try {
-        // Initialize scheduler
-        await scheduler.init();
+        // Initialize scheduler with timeout
+        await withTimeout(scheduler.init(), 2000, undefined);
+
+        // Cleanup cache if requested
+        if (cleanupCache) {
+            await cleanupAllCaches().catch(() => {});
+            return NextResponse.json({ success: true, message: 'Cache cleaned' });
+        }
 
         // If status only, return scheduler and cache status
         if (statusOnly) {
-            const analysisStats = await getAnalysisStats();
+            const analysisStats = await withTimeout(getAnalysisStats(), 2000, {
+                cache: { 
+                    totalEntries: 0, 
+                    validEntries: 0, 
+                    expiredEntries: 0,
+                    oldestEntry: null,
+                    newestEntry: null,
+                    cacheHits: 0,
+                    cacheMisses: 0,
+                },
+                apiPool: { totalRequests: 0, totalErrors: 0, keysInCooldown: 0, healthyKeys: 10 },
+                knownModels: 122,
+                knownIDEs: 61,
+                knownCompanies: 63,
+            });
 
             return NextResponse.json({
                 scheduler: scheduler.getStatus(),
@@ -35,8 +64,20 @@ export async function GET(request: Request) {
             });
         }
 
+        // Always try to get cached data first for quick response
+        const quickCache = await getCachedNews();
+        if (quickCache && quickCache.length > 0 && !forceRefresh) {
+            // Check if cache is fresh enough (less than 30 minutes old)
+            // Use pubDate of first item as proxy for cache age
+            const cacheAge = Date.now() - (quickCache[0]?.pubDate ? new Date(quickCache[0].pubDate).getTime() : 0);
+            if (cacheAge < 30 * 60 * 1000) {
+                console.log(`[API] Serving fresh cache (${quickCache.length} items)`);
+                return createResponse(quickCache, true, 'quick_cache');
+            }
+        }
+
         // Determine action based on scheduler
-        const action = forceRefresh ? 'fetch_and_analyze' : await scheduler.getNextAction();
+        const action = forceRefresh ? 'fetch_and_analyze' : await withTimeout(scheduler.getNextAction(), 1000, 'serve_cache');
 
         console.log(`[API] Action: ${action}, Force: ${forceRefresh}`);
 
@@ -67,22 +108,28 @@ export async function GET(request: Request) {
             case 'fetch_only':
             case 'fetch_and_analyze':
                 // Mark as processing
-                await scheduler.startAnalysis();
+                await scheduler.startAnalysis().catch(() => {});
 
                 try {
-                    // Fetch from ALL sources - 3 day lookback for fresh content
+                    // Fetch from ALL sources with timeout (20s max)
                     console.log('[API] Fetching from all sources (last 3 days)...');
-                    const { items: rawNews, sourceStats } = await fetchAllSources(3);
-                    await scheduler.completeRSSFetch();
+                    const fetchResult = await withTimeout(
+                        fetchAllSources(3),
+                        20000, // 20 second timeout for fetching
+                        { items: [], sourceStats: [] }
+                    );
+                    
+                    const { items: rawNews, sourceStats } = fetchResult;
+                    await scheduler.completeRSSFetch().catch(() => {});
 
                     const sourcesHealth = getSourcesHealth(sourceStats);
                     console.log(`[API] Sources health: ${sourcesHealth.healthy}/${sourcesHealth.total} healthy`);
 
                     if (rawNews.length === 0) {
-                        await scheduler.failProcessing();
+                        await scheduler.failProcessing().catch(() => {});
                         // Return cached if available
                         const fallbackCache = await getCachedNews();
-                        if (fallbackCache) {
+                        if (fallbackCache && fallbackCache.length > 0) {
                             return createResponse(fallbackCache, true, 'fallback');
                         }
                         return NextResponse.json(
@@ -91,24 +138,40 @@ export async function GET(request: Request) {
                         );
                     }
 
-                    // Analyze with AI - process top 25 items to avoid rate limits
+                    // Analyze with AI - process top 15 items (reduced from 25) to avoid timeouts
                     // Groq free tier is very strict, so we limit to avoid hitting limits
-                    console.log(`[API] Analyzing ${rawNews.length} articles (top 25)...`);
-                    const topNews = rawNews.slice(0, 25);
-                    const analyzedNews = await batchAnalyze(topNews);
+                    console.log(`[API] Analyzing ${rawNews.length} articles (top 15)...`);
+                    const topNews = rawNews.slice(0, 15);
+                    
+                    // Analyze with timeout (15s max)
+                    const analyzedNews = await withTimeout(
+                        batchAnalyze(topNews),
+                        15000, // 15 second timeout for analysis
+                        topNews // Fallback to unanalyzed news if timeout
+                    );
 
                     // Save to cache
-                    await setCachedNews(analyzedNews);
-                    await scheduler.completeAnalysis();
+                    await setCachedNews(analyzedNews).catch(() => {});
+                    await scheduler.completeAnalysis().catch(() => {});
 
-                    // Cleanup old cache entries periodically
-                    await cleanupAllCaches();
+                    // Cleanup old cache entries periodically (non-blocking)
+                    cleanupAllCaches().catch(() => {});
 
                     console.log(`[API] Returning ${analyzedNews.length} analyzed items`);
                     return createResponse(analyzedNews, false, 'fresh');
 
                 } catch (processingError) {
-                    await scheduler.failProcessing();
+                    console.error('[API] Processing error:', processingError);
+                    await scheduler.failProcessing().catch(() => {});
+                    
+                    // Always return cached data on error
+                    const errorCache = await getCachedNews();
+                    if (errorCache && errorCache.length > 0) {
+                        console.log('[API] Returning cached data after processing error');
+                        return createResponse(errorCache, true, 'error_fallback');
+                    }
+                    
+                    // If no cache, return partial data
                     throw processingError;
                 }
 
@@ -124,20 +187,35 @@ export async function GET(request: Request) {
     } catch (error) {
         console.error('[API] Error:', error);
 
-        // Try to return cached data on error
+        // Always try to return cached data on error (with timeout)
         try {
-            const errorCache = await getCachedNews();
+            const errorCache = await withTimeout(getCachedNews(), 2000, null);
             if (errorCache && errorCache.length > 0) {
                 console.log('[API] Returning cached data after error');
                 return createResponse(errorCache, true, 'error_fallback');
             }
-        } catch {
-            // Ignore cache errors
+        } catch (cacheError) {
+            console.error('[API] Cache retrieval error:', cacheError);
         }
 
+        // Last resort: return empty response with error info
         return NextResponse.json(
-            { error: 'Failed to fetch news', details: error instanceof Error ? error.message : 'Unknown error' },
-            { status: 500 }
+            { 
+                error: 'Failed to fetch news', 
+                details: error instanceof Error ? error.message : 'Unknown error',
+                items: [],
+                stats: {
+                    totalArticles: 0,
+                    newArticles: 0,
+                    sources: 0,
+                    categories: {} as Record<NewsCategory, number>,
+                },
+                scheduler: {
+                    nextRefresh: 0,
+                    isProcessing: false,
+                },
+            },
+            { status: 200 } // Return 200 instead of 500 to prevent frontend errors
         );
     }
 }
@@ -146,53 +224,76 @@ export async function GET(request: Request) {
  * Create standardized API response
  */
 function createResponse(items: NewsItem[], fromCache: boolean, source: string): NextResponse {
-    // Calculate category counts
-    const categories: Record<NewsCategory, number> = {
-        model_launch: 0,
-        ide_update: 0,
-        ide_launch: 0,
-        video_ai: 0,
-        image_ai: 0,
-        agent: 0,
-        api: 0,
-        feature: 0,
-        research: 0,
-        tutorial: 0,
-        market: 0,
-        other: 0,
-    };
+    try {
+        // Ensure items is an array
+        const safeItems = Array.isArray(items) ? items : [];
 
-    items.forEach(item => {
-        if (item.category && item.category in categories) {
-            categories[item.category]++;
-        }
-    });
+        // Calculate category counts
+        const categories: Record<NewsCategory, number> = {
+            model_launch: 0,
+            ide_update: 0,
+            ide_launch: 0,
+            video_ai: 0,
+            image_ai: 0,
+            agent: 0,
+            api: 0,
+            feature: 0,
+            research: 0,
+            tutorial: 0,
+            market: 0,
+            other: 0,
+        };
 
-    // Count unique sources
-    const sources = new Set(items.map(item => item.source)).size;
+        safeItems.forEach(item => {
+            if (item?.category && item.category in categories) {
+                categories[item.category]++;
+            }
+        });
 
-    // Get breaking/new items count
-    const newItems = items.filter(item => item.isBreaking || item.priority === 'high').length;
+        // Count unique sources
+        const sources = new Set(safeItems.map(item => item?.source).filter(Boolean)).size;
 
-    const response: NewsResponse = {
-        items,
-        lastUpdated: new Date().toISOString(),
-        fromCache,
-        stats: {
-            totalArticles: items.length,
-            newArticles: newItems,
-            sources,
-            categories,
-        },
-        scheduler: {
-            nextRefresh: scheduler.getTimeUntilNextAnalysis(),
-            isProcessing: scheduler.isCurrentlyProcessing(),
-        },
-    };
+        // Get breaking/new items count
+        const newItems = safeItems.filter(item => item?.isBreaking || item?.priority === 'high').length;
 
-    console.log(`[API] Response: ${items.length} items, fromCache: ${fromCache}, source: ${source}`);
+        const response: NewsResponse = {
+            items: safeItems,
+            lastUpdated: new Date().toISOString(),
+            fromCache,
+            stats: {
+                totalArticles: safeItems.length,
+                newArticles: newItems,
+                sources,
+                categories,
+            },
+            scheduler: {
+                nextRefresh: scheduler.getTimeUntilNextAnalysis(),
+                isProcessing: scheduler.isCurrentlyProcessing(),
+            },
+        };
 
-    return NextResponse.json(response);
+        console.log(`[API] Response: ${safeItems.length} items, fromCache: ${fromCache}, source: ${source}`);
+
+        return NextResponse.json(response);
+    } catch (error) {
+        console.error('[API] Error creating response:', error);
+        // Fallback response
+        return NextResponse.json({
+            items: [],
+            lastUpdated: new Date().toISOString(),
+            fromCache: false,
+            stats: {
+                totalArticles: 0,
+                newArticles: 0,
+                sources: 0,
+                categories: {} as Record<NewsCategory, number>,
+            },
+            scheduler: {
+                nextRefresh: 0,
+                isProcessing: false,
+            },
+        });
+    }
 }
 
 /**

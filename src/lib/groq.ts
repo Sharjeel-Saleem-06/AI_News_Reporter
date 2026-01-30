@@ -541,18 +541,40 @@ export async function batchAnalyze(items: NewsItem[]): Promise<NewsItem[]> {
         console.log(`[Groq] Using ${cachedResults.length} cached analyses, processing ${itemsToProcess.length} new items`);
     }
 
-    // Process items in parallel chunks
+    // Process items in parallel chunks with timeout protection
     for (let i = 0; i < itemsToProcess.length; i += concurrency) {
         const chunk = itemsToProcess.slice(i, i + concurrency);
 
-        const analyzedChunk = await Promise.all(
-            chunk.map(async (item) => {
-                const analysis = await analyzeNewsItem(item);
-                return { ...item, ...analysis };
+        const analyzedChunk = await Promise.allSettled(
+            chunk.map(async (item, index) => {
+                try {
+                    // Add timeout to individual analysis (5 seconds max per item)
+                    const analysisPromise = analyzeNewsItem(item);
+                    const timeoutPromise = new Promise<Partial<NewsItem>>((resolve) => 
+                        setTimeout(() => resolve(createFallbackAnalysis(item)), 5000)
+                    );
+                    const analysis = await Promise.race([analysisPromise, timeoutPromise]);
+                    return { ...item, ...analysis };
+                } catch (error) {
+                    console.warn(`[Groq] Analysis error for "${item.title.slice(0, 50)}...":`, error);
+                    return { ...item, ...createFallbackAnalysis(item) };
+                }
             })
         );
 
-        results.push(...analyzedChunk);
+        // Process results, handling both fulfilled and rejected promises
+        analyzedChunk.forEach((result, index) => {
+            if (result.status === 'fulfilled') {
+                results.push(result.value);
+            } else {
+                console.warn(`[Groq] Analysis failed for item at index ${index}:`, result.reason);
+                // Add fallback analysis
+                const item = chunk[index];
+                if (item) {
+                    results.push({ ...item, ...createFallbackAnalysis(item) });
+                }
+            }
+        });
 
         // Progress logging
         const progress = Math.min(100, Math.round(((i + chunk.length) / itemsToProcess.length) * 100));
