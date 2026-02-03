@@ -604,15 +604,25 @@ export async function batchAnalyze(items: NewsItem[]): Promise<NewsItem[]> {
         return new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime();
     });
 
-    // Filter out low relevance items (score < 4) unless they're from official sources
-    const filtered = allResults.filter(item => 
-        (item.relevanceScore && item.relevanceScore >= 4) || 
-        item.sourceTier === 'official' ||
-        item.priority === 'breaking' ||
-        item.priority === 'high'
-    );
+    // STRICT FILTERING: Only keep high-value content for AI engineers
+    const filtered = allResults.filter(item => {
+        // Always keep breaking news
+        if (item.priority === 'breaking') return true;
+        
+        // Always keep high priority from official sources
+        if (item.priority === 'high' && item.sourceTier === 'official') return true;
+        
+        // Keep items with relevance >= 6 (meaningful for AI engineers)
+        if (item.relevanceScore && item.relevanceScore >= 6) return true;
+        
+        // Keep high priority items with decent relevance
+        if (item.priority === 'high' && item.relevanceScore && item.relevanceScore >= 5) return true;
+        
+        // Skip everything else (low value content)
+        return false;
+    });
 
-    console.log(`[Groq] Final: ${filtered.length} items after relevance filtering (removed ${allResults.length - filtered.length})`);
+    console.log(`[Groq] Final: ${filtered.length} items after strict filtering (removed ${allResults.length - filtered.length} low-value items)`);
 
     return filtered;
 }

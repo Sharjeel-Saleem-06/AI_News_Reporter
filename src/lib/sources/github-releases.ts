@@ -1,6 +1,7 @@
 /**
  * GitHub Releases API Fetcher
- * Fetches releases from key AI/ML repositories
+ * ONLY fetches MAJOR releases - filters out patch/minor updates
+ * For AI/Prompt Engineers: We only care about significant releases
  */
 
 import { NewsItem, NewsCategory } from '../types';
@@ -12,79 +13,86 @@ interface GitHubRepo {
     name: string;
     category: NewsCategory;
     color: string;
+    minMajorVersion?: number; // Only show releases >= this major version
 }
 
-// Key AI/ML repositories to track - Updated Jan 2026
+// Key AI/ML repositories to track - REDUCED LIST for quality over quantity
+// Only repos that have MEANINGFUL releases for AI engineers
 const TRACKED_REPOS: GitHubRepo[] = [
-    // AI Frameworks (Tier 1)
+    // AI Frameworks - MAJOR releases only
     { owner: 'langchain-ai', repo: 'langchain', name: 'LangChain', category: 'agent', color: '#1c3c3c' },
     { owner: 'langchain-ai', repo: 'langgraph', name: 'LangGraph', category: 'agent', color: '#1c3c3c' },
     { owner: 'run-llama', repo: 'llama_index', name: 'LlamaIndex', category: 'agent', color: '#7c3aed' },
-    { owner: 'microsoft', repo: 'autogen', name: 'AutoGen', category: 'agent', color: '#00a4ef' },
     { owner: 'joaomdmoura', repo: 'crewAI', name: 'CrewAI', category: 'agent', color: '#ff6b6b' },
-    { owner: 'stanfordnlp', repo: 'dspy', name: 'DSPy', category: 'agent', color: '#8b0000' },
-    { owner: 'pydantic', repo: 'pydantic-ai', name: 'Pydantic AI', category: 'agent', color: '#e92063' },
-    { owner: 'openai', repo: 'swarm', name: 'OpenAI Swarm', category: 'agent', color: '#10a37f' },
     
-    // LLMs & Models (Tier 1)
+    // LLM Runners - Only major releases
     { owner: 'ollama', repo: 'ollama', name: 'Ollama', category: 'model_launch', color: '#ffffff' },
-    { owner: 'ggerganov', repo: 'llama.cpp', name: 'llama.cpp', category: 'model_launch', color: '#333333' },
-    { owner: 'huggingface', repo: 'transformers', name: 'HF Transformers', category: 'model_launch', color: '#ff9d00' },
     { owner: 'vllm-project', repo: 'vllm', name: 'vLLM', category: 'api', color: '#7c3aed' },
-    { owner: 'deepseek-ai', repo: 'DeepSeek-Coder', name: 'DeepSeek Coder', category: 'model_launch', color: '#4f46e5' },
-    { owner: 'MoonshotAI', repo: 'Kimi-K2', name: 'Kimi K2', category: 'model_launch', color: '#0ea5e9' },
-    { owner: '01-ai', repo: 'Yi', name: 'Yi', category: 'model_launch', color: '#f97316' },
-    { owner: 'QwenLM', repo: 'Qwen', name: 'Qwen', category: 'model_launch', color: '#3b82f6' },
     
-    // AI Coding Tools (Tier 1)
-    { owner: 'Aider-AI', repo: 'aider', name: 'Aider', category: 'ide_update', color: '#00ff9f' },
-    { owner: 'continuedev', repo: 'continue', name: 'Continue', category: 'ide_update', color: '#0066ff' },
-    { owner: 'sourcegraph', repo: 'cody', name: 'Cody', category: 'ide_update', color: '#ff5733' },
-    { owner: 'cline', repo: 'cline', name: 'Cline', category: 'ide_update', color: '#22c55e' },
-    { owner: 'getcursor', repo: 'cursor', name: 'Cursor', category: 'ide_update', color: '#000000' },
-    
-    // Vector DBs & RAG
-    { owner: 'chroma-core', repo: 'chroma', name: 'ChromaDB', category: 'agent', color: '#ff6b6b' },
-    { owner: 'qdrant', repo: 'qdrant', name: 'Qdrant', category: 'agent', color: '#dc2626' },
-    { owner: 'weaviate', repo: 'weaviate', name: 'Weaviate', category: 'agent', color: '#00d26a' },
-    { owner: 'lancedb', repo: 'lancedb', name: 'LanceDB', category: 'agent', color: '#7c3aed' },
-    { owner: 'milvus-io', repo: 'milvus', name: 'Milvus', category: 'agent', color: '#00a1ea' },
-    
-    // AI Infrastructure
-    { owner: 'BerriAI', repo: 'litellm', name: 'LiteLLM', category: 'api', color: '#10a37f' },
-    { owner: 'anthropics', repo: 'anthropic-cookbook', name: 'Anthropic Cookbook', category: 'tutorial', color: '#d4a574' },
-    { owner: 'openai', repo: 'openai-cookbook', name: 'OpenAI Cookbook', category: 'tutorial', color: '#10a37f' },
-    
-    // MCP (Model Context Protocol)
-    { owner: 'modelcontextprotocol', repo: 'servers', name: 'MCP Servers', category: 'agent', color: '#8b5cf6' },
-    { owner: 'modelcontextprotocol', repo: 'typescript-sdk', name: 'MCP TypeScript SDK', category: 'agent', color: '#3178c6' },
-    { owner: 'modelcontextprotocol', repo: 'python-sdk', name: 'MCP Python SDK', category: 'agent', color: '#3776ab' },
-    
-    // Agentic AI Platforms (NEW)
-    { owner: 'langflow-ai', repo: 'langflow', name: 'Langflow', category: 'agent', color: '#ff7f0e' },
+    // Agentic AI - Major releases
+    { owner: 'All-Hands-AI', repo: 'OpenHands', name: 'OpenHands', category: 'agent', color: '#ef4444' },
     { owner: 'FlowiseAI', repo: 'Flowise', name: 'Flowise', category: 'agent', color: '#6366f1' },
-    { owner: 'All-Hands-AI', repo: 'OpenHands', name: 'OpenHands (OpenDevin)', category: 'agent', color: '#ef4444' },
-    { owner: 'princeton-nlp', repo: 'SWE-agent', name: 'SWE-agent', category: 'agent', color: '#ff6600' },
-    
-    // Prompt Engineering & Evaluation
-    { owner: 'promptfoo', repo: 'promptfoo', name: 'Promptfoo', category: 'tutorial', color: '#8b5cf6' },
-    { owner: 'langfuse', repo: 'langfuse', name: 'Langfuse', category: 'api', color: '#ec4899' },
-    
-    // Image/Video AI
-    { owner: 'AUTOMATIC1111', repo: 'stable-diffusion-webui', name: 'SD WebUI', category: 'image_ai', color: '#ff9d00' },
-    { owner: 'comfyanonymous', repo: 'ComfyUI', name: 'ComfyUI', category: 'image_ai', color: '#22c55e' },
-    { owner: 'black-forest-labs', repo: 'flux', name: 'FLUX', category: 'image_ai', color: '#000000' },
 ];
 
 /**
- * Fetch releases from GitHub API
+ * Check if a version is a MAJOR release (x.0.0 or significant)
+ * Returns true for:
+ * - Major versions (1.0.0, 2.0.0)
+ * - Minor with new features (0.1.0 for new projects)
+ * - Named releases with significant keywords
  */
-export async function fetchGitHubReleases(lookbackDays: number = 3): Promise<NewsItem[]> {
+function isMajorRelease(tagName: string, releaseName: string, body: string): boolean {
+    const fullText = `${tagName} ${releaseName} ${body}`.toLowerCase();
+    
+    // Version patterns
+    const versionMatch = tagName.match(/v?(\d+)\.(\d+)\.(\d+)/);
+    if (versionMatch) {
+        const [, major, minor, patch] = versionMatch.map(Number);
+        
+        // x.0.0 = MAJOR release
+        if (minor === 0 && patch === 0 && major > 0) return true;
+        
+        // x.x.0 with major >= 1 = MINOR feature release (still interesting)
+        if (patch === 0 && major >= 1) return true;
+        
+        // Skip all patch releases (x.x.1, x.x.2, etc.)
+        if (patch > 0) return false;
+    }
+    
+    // Check for significant keywords in release
+    const significantKeywords = [
+        'major', 'breaking', 'new feature', 'introducing',
+        'completely new', 'rewrite', 'v1.0', 'v2.0', 'v3.0',
+        'launch', 'announcing', 'big update', 'milestone'
+    ];
+    
+    if (significantKeywords.some(kw => fullText.includes(kw))) {
+        return true;
+    }
+    
+    // Check for insignificant keywords (skip these)
+    const skipKeywords = [
+        'bug fix', 'bugfix', 'patch', 'hotfix', 'typo',
+        'dependency', 'deps', 'chore', 'refactor', 'cleanup',
+        'minor', 'small', 'fix:'
+    ];
+    
+    if (skipKeywords.some(kw => fullText.includes(kw))) {
+        return false;
+    }
+    
+    return false;
+}
+
+/**
+ * Fetch ONLY major releases from GitHub API
+ */
+export async function fetchGitHubReleases(lookbackDays: number = 7): Promise<NewsItem[]> {
     const cutoffDate = subDays(new Date(), lookbackDays);
     const allItems: NewsItem[] = [];
     
-    // Fetch releases in batches to avoid rate limiting
-    const batchSize = 5;
+    // Fetch releases in batches
+    const batchSize = 4;
     for (let i = 0; i < TRACKED_REPOS.length; i += batchSize) {
         const batch = TRACKED_REPOS.slice(i, i + batchSize);
         
@@ -92,27 +100,27 @@ export async function fetchGitHubReleases(lookbackDays: number = 3): Promise<New
             batch.map(repo => fetchRepoReleases(repo, cutoffDate))
         );
         
-        results.forEach((result, index) => {
+        results.forEach((result) => {
             if (result.status === 'fulfilled' && result.value.length > 0) {
                 allItems.push(...result.value);
             }
         });
         
-        // Small delay between batches to be nice to GitHub API
         if (i + batchSize < TRACKED_REPOS.length) {
-            await new Promise(resolve => setTimeout(resolve, 200));
+            await new Promise(resolve => setTimeout(resolve, 300));
         }
     }
     
+    console.log(`[GitHub] Found ${allItems.length} MAJOR releases (filtered from noise)`);
     return allItems;
 }
 
 /**
- * Fetch releases for a single repository
+ * Fetch releases for a single repository - ONLY MAJOR ones
  */
 async function fetchRepoReleases(repo: GitHubRepo, cutoffDate: Date): Promise<NewsItem[]> {
     try {
-        const url = `https://api.github.com/repos/${repo.owner}/${repo.repo}/releases?per_page=5`;
+        const url = `https://api.github.com/repos/${repo.owner}/${repo.repo}/releases?per_page=10`;
         
         const response = await fetch(url, {
             headers: {
@@ -122,9 +130,6 @@ async function fetchRepoReleases(repo: GitHubRepo, cutoffDate: Date): Promise<Ne
         });
         
         if (!response.ok) {
-            if (response.status === 403) {
-                console.warn(`[GitHub] Rate limited for ${repo.name}`);
-            }
             return [];
         }
         
@@ -133,25 +138,27 @@ async function fetchRepoReleases(repo: GitHubRepo, cutoffDate: Date): Promise<Ne
         return releases
             .filter((release: any) => {
                 const date = new Date(release.published_at);
-                return !release.draft && isAfter(date, cutoffDate);
+                if (release.draft || !isAfter(date, cutoffDate)) return false;
+                
+                // CRITICAL: Only include MAJOR releases
+                return isMajorRelease(release.tag_name, release.name || '', release.body || '');
             })
             .map((release: any) => ({
                 id: `github-${repo.owner}-${repo.repo}-${release.id}`,
                 title: `${repo.name} ${release.tag_name}${release.name ? ` - ${release.name}` : ''}`,
                 link: release.html_url,
                 pubDate: release.published_at,
-                source: 'GitHub',
-                sourceTier: 'official' as const,
-                contentSnippet: truncateMarkdown(release.body || '', 500),
+                source: repo.name,
+                sourceTier: 'trusted' as const, // GitHub releases are trusted but not "official news"
+                contentSnippet: truncateMarkdown(release.body || '', 400),
                 content: release.body || '',
                 category: repo.category,
-                tags: ['GitHub', repo.name, 'Release'],
+                tags: [repo.name, 'Release', 'Major Update'],
                 relatedCompanies: [repo.name],
             }))
-            .slice(0, 2); // Max 2 releases per repo
+            .slice(0, 1); // Max 1 major release per repo
         
     } catch (error) {
-        console.warn(`[GitHub] Failed to fetch ${repo.name}:`, error instanceof Error ? error.message : 'Unknown');
         return [];
     }
 }
@@ -160,17 +167,16 @@ async function fetchRepoReleases(repo: GitHubRepo, cutoffDate: Date): Promise<Ne
  * Truncate markdown content for snippet
  */
 function truncateMarkdown(content: string, maxLength: number): string {
-    // Remove markdown formatting for snippet
     let text = content
-        .replace(/#{1,6}\s/g, '') // Headers
-        .replace(/\*\*([^*]+)\*\*/g, '$1') // Bold
-        .replace(/\*([^*]+)\*/g, '$1') // Italic
-        .replace(/`([^`]+)`/g, '$1') // Inline code
-        .replace(/```[\s\S]*?```/g, '[code]') // Code blocks
-        .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Links
-        .replace(/!\[([^\]]*)\]\([^)]+\)/g, '') // Images
-        .replace(/^\s*[-*+]\s/gm, '• ') // List items
-        .replace(/\n{2,}/g, ' ') // Multiple newlines
+        .replace(/#{1,6}\s/g, '')
+        .replace(/\*\*([^*]+)\*\*/g, '$1')
+        .replace(/\*([^*]+)\*/g, '$1')
+        .replace(/`([^`]+)`/g, '$1')
+        .replace(/```[\s\S]*?```/g, '[code]')
+        .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+        .replace(/!\[([^\]]*)\]\([^)]+\)/g, '')
+        .replace(/^\s*[-*+]\s/gm, '• ')
+        .replace(/\n{2,}/g, ' ')
         .trim();
     
     if (text.length > maxLength) {

@@ -196,6 +196,13 @@ async function fetchStory(id: number, cutoffDate: Date): Promise<NewsItem | null
             return null;
         }
         
+        // STRICT: Require minimum HN score for quality (popular = interesting)
+        // Stories with < 50 points are usually not worth showing
+        const minScore = 30;
+        if ((story.score || 0) < minScore) {
+            return null;
+        }
+        
         // Calculate relevance score based on HN score and keyword matches
         const relevanceScore = Math.min(10, Math.round(
             (Math.log10((story.score || 1) + 1) * 2) + (matchedKeywords.length * 1.5)
